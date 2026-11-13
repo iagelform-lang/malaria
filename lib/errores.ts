@@ -9,6 +9,9 @@ const MENSAJES: Record<string, string> = {
   YA_TIENE_SALIDA: "Ya tenía la salida marcada.",
   HORA_INVALIDA: "Esa hora no tiene sentido (antes de entrar o en el futuro).",
   ASISTENCIA_INEXISTENTE: "No encontramos ese registro.",
+  ULTIMO_ADMIN: "Tiene que quedar al menos un admin.",
+  NO_A_SI_MISMO: "No te podés desactivar a vos mismo.",
+  PERFIL_INEXISTENTE: "No encontramos a esa persona.",
 };
 
 export function mensajeError(error: { message?: string } | null | undefined) {

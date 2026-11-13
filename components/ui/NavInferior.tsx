@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Home, QrCode } from "lucide-react";
+import { BarChart3, Home, QrCode, Users } from "lucide-react";
 
 const ITEMS = [
   { href: "/", etiqueta: "Inicio", Icono: Home },
+  { href: "/grupo", etiqueta: "Grupo", Icono: Users },
   { href: "/perfil", etiqueta: "Mi QR", Icono: QrCode },
   { href: "/stats", etiqueta: "Stats", Icono: BarChart3 },
 ];
@@ -26,7 +27,7 @@ function Nav({ ruta }: { ruta: string }) {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-borde bg-fondo/90 backdrop-blur pb-seguro">
-      <ul className="mx-auto grid max-w-md grid-cols-3">
+      <ul className="mx-auto grid max-w-md grid-cols-4">
         {ITEMS.map(({ href, etiqueta, Icono }) => {
           const activo = href === "/" ? ruta === "/" : ruta.startsWith(href);
           return (
