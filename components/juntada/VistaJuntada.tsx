@@ -18,6 +18,7 @@ type Props = {
   confirmacionesIniciales: Confirmacion[];
   uid: string;
   puedeGestionar: boolean;
+  esAdmin: boolean;
 };
 
 const ETIQUETA_ESTADO: Record<Juntada["estado"], { texto: string; clase: string }> = {
@@ -34,6 +35,7 @@ export function VistaJuntada({
   confirmacionesIniciales,
   uid,
   puedeGestionar,
+  esAdmin,
 }: Props) {
   const router = useRouter();
   const supabase = useMemo(() => crearClienteNavegador(), []);
@@ -75,6 +77,9 @@ export function VistaJuntada({
         recargar,
       )
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "juntadas", filter: `id=eq.${id}` }, recargar)
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "juntadas" }, (payload) => {
+        if ((payload.old as { id?: string })?.id === id) router.replace("/");
+      })
       .subscribe();
 
     // El celular corta el websocket al bloquearse: al volver, refrescamos
@@ -84,7 +89,7 @@ export function VistaJuntada({
       document.removeEventListener("visibilitychange", alVolver);
       supabase.removeChannel(canal);
     };
-  }, [supabase, id, recargar]);
+  }, [supabase, id, recargar, router]);
 
   // ---------- Derivados ----------
   const abiertas = asistencias.filter((a) => !a.salida);
@@ -185,7 +190,10 @@ export function VistaJuntada({
           <button
             disabled={ocupado}
             onClick={() =>
-              ejecutar(() => supabase.rpc("iniciar_juntada", { p_juntada_id: id }), "¡Arrancó la juntada! Ya quedaste anotado como presente.")
+              ejecutar(
+                () => supabase.rpc("iniciar_juntada", { p_juntada_id: id }),
+                "¡Arrancó la juntada! Ya quedaste anotado como presente.",
+              )
             }
             className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black active:scale-[0.98] disabled:opacity-50"
           >
@@ -227,14 +235,12 @@ export function VistaJuntada({
           onGuardar={(iso) =>
             ejecutar(
               () =>
-                supabase
-                  .from("confirmaciones")
-                  .upsert({
-                    juntada_id: id,
-                    perfil_id: uid,
-                    hora_prometida: iso,
-                    actualizado_en: new Date().toISOString(),
-                  }),
+                supabase.from("confirmaciones").upsert({
+                  juntada_id: id,
+                  perfil_id: uid,
+                  hora_prometida: iso,
+                  actualizado_en: new Date().toISOString(),
+                }),
               "Listo, quedó anotado.",
             )
           }
@@ -315,6 +321,30 @@ export function VistaJuntada({
       )}
 
       {juntada.estado === "cancelada" && <Vacio texto="Esta juntada se canceló." />}
+
+      {/* Solo admins: borrar una juntada creada o arrancada por error */}
+      {esAdmin && (
+        <div className="mt-6 border-t border-borde pt-6">
+          <BotonConfirmar
+            texto="Eliminar juntada"
+            confirmar="Sí, eliminar para siempre"
+            peligro
+            onConfirmar={async () => {
+              setOcupado(true);
+              const { error } = await supabase.rpc("eliminar_juntada", { p_juntada_id: id });
+              setOcupado(false);
+              if (error) setAviso(mensajeError(error));
+              else {
+                router.replace("/");
+                router.refresh();
+              }
+            }}
+          />
+          <p className="mt-2 text-center text-xs text-texto-suave">
+            Borra la juntada con todas sus entradas, salidas y horas prometidas. No se puede deshacer.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -470,7 +500,9 @@ function FilaPresente({
           </p>
           <p className="text-sm text-texto-suave">Desde {hora(asistencia.entrada)}</p>
         </div>
-        <span className="font-mono text-lg tabular-nums text-acento">{ahora ? cronometro(asistencia.entrada, ahora) : "—:—"}</span>
+        <span className="font-mono text-lg tabular-nums text-acento">
+          {ahora ? cronometro(asistencia.entrada, ahora) : "—:—"}
+        </span>
         {puedeGestionar && (
           <button
             onClick={() => setAbierto(!abierto)}

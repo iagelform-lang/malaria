@@ -11,6 +11,7 @@ const MENSAJES: Record<string, string> = {
   ASISTENCIA_INEXISTENTE: "No encontramos ese registro.",
   ULTIMO_ADMIN: "Tiene que quedar al menos un admin.",
   NO_A_SI_MISMO: "No te podés desactivar a vos mismo.",
+  JUNTADA_INEXISTENTE: "Esa juntada ya no existe.",
   PERFIL_INEXISTENTE: "No encontramos a esa persona.",
 };
 
