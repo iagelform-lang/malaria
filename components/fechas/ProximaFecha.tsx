@@ -22,6 +22,7 @@ export function ProximaFecha({ fechas }: { fechas: FechaEspecial[] }) {
         <p className="mt-2 text-sm font-semibold uppercase tracking-wide">Hoy es</p>
         <p className="text-3xl font-black leading-tight">{p.nombre}</p>
         {cumple && <p className="mt-1 font-semibold">¡{cumple}!</p>}
+        {p.lugar && <p className="mt-1 text-sm font-medium">📍 {p.lugar}</p>}
       </Link>
     );
   }
@@ -38,6 +39,7 @@ export function ProximaFecha({ fechas }: { fechas: FechaEspecial[] }) {
         <p className="text-xs text-texto-suave">
           {nombreFecha(p.dia, p.mes)}
           {cumple && ` · cumplen ${cumple}`}
+          {p.lugar && ` · 📍 ${p.lugar}`}
         </p>
       </div>
     </Link>

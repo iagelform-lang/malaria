@@ -29,7 +29,7 @@ async function Contenido() {
   const [{ data: perfiles }, { data: asistencias }, { data: fechas }] = await Promise.all([
     supabase.from("perfiles").select("id, apodo, rol, activo, creado_en").order("apodo"),
     supabase.from("asistencias").select("perfil_id, juntada_id, salida"),
-    supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio"),
+    supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio, lugar, creado_por"),
   ]);
 
   const juntadasPorPerfil = new Map<string, Set<string>>();
@@ -52,7 +52,7 @@ async function Contenido() {
 
   return (
     <div className="flex flex-col gap-8">
-      <FechasGrupo fechas={(fechas as FechaEspecial[]) ?? []} esAdmin={esAdmin} />
+      <FechasGrupo fechas={(fechas as FechaEspecial[]) ?? []} esAdmin={esAdmin} uid={uid ?? ""} />
       <ListaGrupo miembros={miembros} uid={uid ?? ""} esAdmin={esAdmin} />
     </div>
   );

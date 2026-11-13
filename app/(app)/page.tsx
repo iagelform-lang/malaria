@@ -54,7 +54,7 @@ async function Listado() {
       .eq("estado", "finalizada")
       .order("inicio_programado", { ascending: false })
       .limit(5),
-    supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio"),
+    supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio, lugar, creado_por"),
   ]);
 
   const activa = (activas as JuntadaConConteo[] | null)?.[0];

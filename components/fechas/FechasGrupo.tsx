@@ -23,7 +23,7 @@ const MESES = [
 ];
 const DIAS_MES = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-export function FechasGrupo({ fechas, esAdmin }: { fechas: FechaEspecial[]; esAdmin: boolean }) {
+export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[]; esAdmin: boolean; uid: string }) {
   const router = useRouter();
   const supabase = useMemo(() => crearClienteNavegador(), []);
   const ahora = useAhora(60_000);
@@ -32,25 +32,30 @@ export function FechasGrupo({ fechas, esAdmin }: { fechas: FechaEspecial[]; esAd
   const [dia, setDia] = useState(1);
   const [mes, setMes] = useState(1);
   const [desde, setDesde] = useState("");
+  const [lugar, setLugar] = useState("");
   const [borrando, setBorrando] = useState<number | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const lista = ahora ? ordenarProximas(fechas, new Date(ahora)) : [];
-  if (!esAdmin && fechas.length === 0) return null;
 
   async function guardar() {
     setOcupado(true);
     setError(null);
     const anio = desde.trim() ? Number(desde) : null;
-    const { error } = await supabase
-      .from("fechas_especiales")
-      .insert({ nombre: nombre.trim(), dia: Math.min(dia, DIAS_MES[mes - 1]), mes, desde_anio: anio });
+    const { error } = await supabase.from("fechas_especiales").insert({
+      nombre: nombre.trim(),
+      dia: Math.min(dia, DIAS_MES[mes - 1]),
+      mes,
+      desde_anio: anio,
+      lugar: lugar.trim() || null,
+    });
     setOcupado(false);
     if (error) return setError("No se pudo guardar. Revisá la fecha.");
     setAbierto(false);
     setNombre("");
     setDesde("");
+    setLugar("");
     router.refresh();
   }
 
@@ -66,7 +71,7 @@ export function FechasGrupo({ fechas, esAdmin }: { fechas: FechaEspecial[]; esAd
     <section className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Fechas del grupo</h2>
-        {esAdmin && !abierto && (
+        {!abierto && (
           <button
             onClick={() => setAbierto(true)}
             className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-black"
@@ -81,7 +86,7 @@ export function FechasGrupo({ fechas, esAdmin }: { fechas: FechaEspecial[]; esAd
           <input
             autoFocus
             maxLength={40}
-            placeholder="Ej: Aniversario Malaria"
+            placeholder="Ej: El Malariaso, Cumple de Juan"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             className="rounded-xl border border-borde bg-fondo px-3 py-3 outline-none focus:border-acento"
@@ -111,6 +116,13 @@ export function FechasGrupo({ fechas, esAdmin }: { fechas: FechaEspecial[]; esAd
             </select>
           </div>
           <input
+            maxLength={60}
+            placeholder="Sede (opcional, ej: Hebraica)"
+            value={lugar}
+            onChange={(e) => setLugar(e.target.value)}
+            className="rounded-xl border border-borde bg-fondo px-3 py-3 text-sm outline-none focus:border-acento"
+          />
+          <input
             inputMode="numeric"
             maxLength={4}
             placeholder="Desde qué año (opcional, para contar los años)"
@@ -136,7 +148,7 @@ export function FechasGrupo({ fechas, esAdmin }: { fechas: FechaEspecial[]; esAd
 
       {fechas.length === 0 && !abierto && (
         <p className="rounded-2xl border border-dashed border-borde p-4 text-center text-sm text-texto-suave">
-          Agregá el día del grupo y aparece la cuenta regresiva en el inicio.
+          Agregá el día del grupo o tu cumpleaños y aparece la cuenta regresiva en el inicio.
         </p>
       )}
 
@@ -148,12 +160,13 @@ export function FechasGrupo({ fechas, esAdmin }: { fechas: FechaEspecial[]; esAd
             <p className="text-xs text-texto-suave">
               {nombreFecha(f.dia, f.mes)}
               {f.desde_anio && ` · desde ${f.desde_anio}`}
+              {f.lugar && ` · 📍 ${f.lugar}`}
             </p>
           </div>
           <span className={`text-sm font-semibold ${f.dias === 0 ? "text-acento" : ""}`}>
             {f.dias === 0 ? "¡Hoy!" : `en ${f.dias} ${f.dias === 1 ? "día" : "días"}`}
           </span>
-          {esAdmin &&
+          {(esAdmin || f.creado_por === uid) &&
             (borrando === f.id ? (
               <button
                 disabled={ocupado}

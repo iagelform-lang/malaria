@@ -1,7 +1,15 @@
 // Fechas especiales del grupo: cuánto falta para la próxima y cuántos años cumplen.
 // Todo en hora de Buenos Aires (UTC-3 fijo).
 
-export type FechaEspecial = { id: number; nombre: string; dia: number; mes: number; desde_anio: number | null };
+export type FechaEspecial = {
+  id: number;
+  nombre: string;
+  dia: number;
+  mes: number;
+  desde_anio: number | null;
+  lugar?: string | null;
+  creado_por?: string | null;
+};
 
 export type Proxima = FechaEspecial & {
   /** 0 = hoy */
