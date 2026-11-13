@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { CalendarPlus, Flag, Play } from "lucide-react";
+import { CalendarHeart, CalendarPlus, Flag, Play } from "lucide-react";
 import { usuarioActual } from "@/lib/sesion";
 import { fechaYHora } from "@/lib/tiempo";
 import { ActivarPush } from "@/components/avisos/ActivarPush";
@@ -8,7 +8,7 @@ import { MarcarLeidas } from "@/components/avisos/MarcarLeidas";
 
 type Aviso = {
   id: number;
-  tipo: "creada" | "iniciada" | "finalizada";
+  tipo: "creada" | "iniciada" | "finalizada" | "evento";
   titulo: string;
   cuerpo: string;
   url: string;
@@ -16,7 +16,7 @@ type Aviso = {
   creado_en: string;
 };
 
-const ICONO = { creada: CalendarPlus, iniciada: Play, finalizada: Flag };
+const ICONO = { creada: CalendarPlus, iniciada: Play, finalizada: Flag, evento: CalendarHeart };
 
 export default function AvisosPage() {
   return (
