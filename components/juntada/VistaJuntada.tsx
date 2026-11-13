@@ -3,7 +3,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Clock, Crown, DoorOpen, Flag, Loader2, MapPin, Play, ScanLine, Share2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Clock,
+  Crown,
+  DoorOpen,
+  Flag,
+  Loader2,
+  MapPin,
+  Play,
+  ScanLine,
+  Share2,
+  X,
+} from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { useAhora } from "@/lib/hooks/useAhora";
 import { aInputLocal, cronometro, desdeInputLocal, duracion, fechaYHora, hora } from "@/lib/tiempo";
@@ -186,30 +199,62 @@ export function VistaJuntada({
       )}
 
       {/* Panel del anfitrión */}
-      {puedeGestionar && juntada.estado === "propuesta" && (
+      {juntada.estado === "propuesta" && (
         <div className="flex flex-col gap-2">
-          <button
-            disabled={ocupado}
-            onClick={() =>
-              ejecutar(
-                () => supabase.rpc("iniciar_juntada", { p_juntada_id: id }),
-                "¡Arrancó la juntada! Ya quedaste anotado como presente.",
-              )
-            }
-            className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black active:scale-[0.98] disabled:opacity-50"
-          >
-            {ocupado ? <Loader2 className="size-5 animate-spin" /> : <Play className="size-5" />} Arrancar juntada
-          </button>
-          <BotonConfirmar
-            texto="Cancelar juntada"
-            confirmar="Sí, cancelarla"
-            peligro
-            onConfirmar={() => ejecutar(() => supabase.rpc("cancelar_juntada", { p_juntada_id: id }))}
-          />
+          {ahoraVivo !== null && ahora < new Date(juntada.inicio_programado).getTime() ? (
+            <div className="flex items-center gap-3 rounded-xl border border-borde bg-superficie p-4">
+              <Clock className="size-5 text-acento" />
+              <p className="text-sm">
+                Arranca sola a las <b>{hora(juntada.inicio_programado)}</b>
+                {" · "}
+                <span className="text-texto-suave">
+                  en {duracion((new Date(juntada.inicio_programado).getTime() - ahora) / 60_000)}
+                </span>
+              </p>
+            </div>
+          ) : (
+            puedeGestionar && (
+              // Solo aparece si ya pasó la hora y el arranque automático todavía no corrió
+              <button
+                disabled={ocupado}
+                onClick={() =>
+                  ejecutar(
+                    () => supabase.rpc("iniciar_juntada", { p_juntada_id: id }),
+                    "¡Arrancó la juntada! Ya quedaste anotado como presente.",
+                  )
+                }
+                className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black active:scale-[0.98] disabled:opacity-50"
+              >
+                {ocupado ? <Loader2 className="size-5 animate-spin" /> : <Play className="size-5" />} Arrancar ahora
+              </button>
+            )
+          )}
+          {puedeGestionar && (
+            <BotonConfirmar
+              texto="Cancelar juntada"
+              confirmar="Sí, cancelarla"
+              peligro
+              onConfirmar={() => ejecutar(() => supabase.rpc("cancelar_juntada", { p_juntada_id: id }))}
+            />
+          )}
         </div>
       )}
       {puedeGestionar && juntada.estado === "activa" && (
         <div className="flex flex-col gap-2">
+          {!estoyPresente && (
+            <button
+              disabled={ocupado}
+              onClick={() =>
+                ejecutar(
+                  () => supabase.rpc("registrar_mi_llegada", { p_juntada_id: id }),
+                  "Listo, quedaste anotado como presente.",
+                )
+              }
+              className="flex items-center justify-center gap-2 rounded-xl border border-acento/50 py-3 font-semibold text-acento"
+            >
+              <Check className="size-5" /> Registrar mi llegada
+            </button>
+          )}
           <Link
             href={`/juntada/${id}/escanear`}
             className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black active:scale-[0.98]"
