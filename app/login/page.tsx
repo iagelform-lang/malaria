@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Mail, PartyPopper } from "lucide-react";
+import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 
 type Paso = "email" | "codigo";
@@ -63,9 +63,12 @@ export default function LoginPage() {
     <main className="flex min-h-dvh flex-col justify-center px-6 pt-seguro pb-seguro">
       <div className="mx-auto w-full max-w-sm">
         <div className="mb-10 flex flex-col items-center gap-3 text-center">
-          <div className="grid size-16 place-items-center rounded-2xl bg-acento/15 text-acento">
-            <PartyPopper className="size-8" />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/grupo.jpg"
+            alt="El grupo"
+            className="w-full max-w-xs rounded-2xl border border-borde object-cover"
+          />
           <h1 className="text-3xl font-bold tracking-tight">Malaria 3.0</h1>
           <p className="text-texto-suave">
             {paso === "email"
