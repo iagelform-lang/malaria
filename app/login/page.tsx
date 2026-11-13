@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
@@ -19,6 +19,17 @@ export default function LoginPage() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Dejar escrito el último mail usado en este celular
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        const guardado = localStorage.getItem("ultimoEmail");
+        if (guardado) setEmail((actual) => actual || guardado);
+      } catch {}
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
+
   async function enviarCodigo(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -36,6 +47,9 @@ export default function LoginPage() {
       );
       return;
     }
+    try {
+      localStorage.setItem("ultimoEmail", email.trim().toLowerCase());
+    } catch {}
     setPaso("codigo");
   }
 

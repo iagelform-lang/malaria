@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { usuarioActual } from "@/lib/sesion";
 import { ListaGrupo, type Miembro } from "@/components/grupo/ListaGrupo";
+import { FechasGrupo } from "@/components/fechas/FechasGrupo";
+import type { FechaEspecial } from "@/lib/fechas";
 
 export default function GrupoPage() {
   return (
@@ -24,9 +26,10 @@ export default function GrupoPage() {
 async function Contenido() {
   const { supabase, uid, esAdmin } = await usuarioActual();
 
-  const [{ data: perfiles }, { data: asistencias }] = await Promise.all([
+  const [{ data: perfiles }, { data: asistencias }, { data: fechas }] = await Promise.all([
     supabase.from("perfiles").select("id, apodo, rol, activo, creado_en").order("apodo"),
     supabase.from("asistencias").select("perfil_id, juntada_id, salida"),
+    supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio"),
   ]);
 
   const juntadasPorPerfil = new Map<string, Set<string>>();
@@ -47,5 +50,10 @@ async function Contenido() {
     presente: presentes.has(p.id),
   }));
 
-  return <ListaGrupo miembros={miembros} uid={uid ?? ""} esAdmin={esAdmin} />;
+  return (
+    <div className="flex flex-col gap-8">
+      <FechasGrupo fechas={(fechas as FechaEspecial[]) ?? []} esAdmin={esAdmin} />
+      <ListaGrupo miembros={miembros} uid={uid ?? ""} esAdmin={esAdmin} />
+    </div>
+  );
 }

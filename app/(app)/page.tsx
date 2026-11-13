@@ -4,6 +4,8 @@ import { CalendarPlus, ChevronRight, Clock, MapPin, Plus, Radio, Users } from "l
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { fechaYHora } from "@/lib/tiempo";
 import type { Juntada } from "@/lib/tipos";
+import type { FechaEspecial } from "@/lib/fechas";
+import { ProximaFecha } from "@/components/fechas/ProximaFecha";
 
 export default function InicioPage() {
   return (
@@ -43,7 +45,7 @@ async function Listado() {
   const supabase = await crearClienteServidor();
   const campos = "*, confirmaciones(count), asistencias(count)";
 
-  const [{ data: activas }, { data: propuestas }, { data: pasadas }] = await Promise.all([
+  const [{ data: activas }, { data: propuestas }, { data: pasadas }, { data: fechas }] = await Promise.all([
     supabase.from("juntadas").select(campos).eq("estado", "activa").limit(1),
     supabase.from("juntadas").select(campos).eq("estado", "propuesta").order("inicio_programado"),
     supabase
@@ -52,6 +54,7 @@ async function Listado() {
       .eq("estado", "finalizada")
       .order("inicio_programado", { ascending: false })
       .limit(5),
+    supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio"),
   ]);
 
   const activa = (activas as JuntadaConConteo[] | null)?.[0];
@@ -60,6 +63,7 @@ async function Listado() {
 
   return (
     <div className="flex flex-col gap-8">
+      <ProximaFecha fechas={(fechas as FechaEspecial[]) ?? []} />
       {activa ? (
         <Link
           href={`/juntada/${activa.id}`}
