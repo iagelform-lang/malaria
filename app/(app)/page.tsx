@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { CalendarPlus, ChevronRight, Clock, MapPin, Plus, Radio, Users } from "lucide-react";
-import { crearClienteServidor } from "@/lib/supabase/server";
 import { fechaYHora } from "@/lib/tiempo";
 import type { Juntada } from "@/lib/tipos";
 import type { FechaEspecial } from "@/lib/fechas";
-import { ProximaFecha } from "@/components/fechas/ProximaFecha";
+import { ProximaFecha, type Voy } from "@/components/fechas/ProximaFecha";
+import { usuarioActual } from "@/lib/sesion";
 
 export default function InicioPage() {
   return (
@@ -42,20 +42,23 @@ type JuntadaConConteo = Juntada & {
 };
 
 async function Listado() {
-  const supabase = await crearClienteServidor();
+  const { supabase, uid } = await usuarioActual();
   const campos = "*, confirmaciones(count), asistencias(count)";
 
-  const [{ data: activas }, { data: propuestas }, { data: pasadas }, { data: fechas }] = await Promise.all([
-    supabase.from("juntadas").select(campos).eq("estado", "activa").limit(1),
-    supabase.from("juntadas").select(campos).eq("estado", "propuesta").order("inicio_programado"),
-    supabase
-      .from("juntadas")
-      .select(campos)
-      .eq("estado", "finalizada")
-      .order("inicio_programado", { ascending: false })
-      .limit(5),
-    supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio, lugar, creado_por"),
-  ]);
+  const [{ data: activas }, { data: propuestas }, { data: pasadas }, { data: fechas }, { data: voy }, { data: perfs }] =
+    await Promise.all([
+      supabase.from("juntadas").select(campos).eq("estado", "activa").limit(1),
+      supabase.from("juntadas").select(campos).eq("estado", "propuesta").order("inicio_programado"),
+      supabase
+        .from("juntadas")
+        .select(campos)
+        .eq("estado", "finalizada")
+        .order("inicio_programado", { ascending: false })
+        .limit(5),
+      supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio, lugar, creado_por, duracion_dias"),
+      supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
+      supabase.from("perfiles").select("id, apodo"),
+    ]);
 
   const activa = (activas as JuntadaConConteo[] | null)?.[0];
   const prox = (propuestas as JuntadaConConteo[] | null) ?? [];
@@ -63,7 +66,12 @@ async function Listado() {
 
   return (
     <div className="flex flex-col gap-8">
-      <ProximaFecha fechas={(fechas as FechaEspecial[]) ?? []} />
+      <ProximaFecha
+        fechas={(fechas as FechaEspecial[]) ?? []}
+        voy={(voy as Voy[]) ?? []}
+        apodos={Object.fromEntries((perfs ?? []).map((p) => [p.id, p.apodo]))}
+        uid={uid ?? ""}
+      />
       {activa ? (
         <Link
           href={`/juntada/${activa.id}`}

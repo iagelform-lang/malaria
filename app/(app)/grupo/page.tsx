@@ -29,7 +29,7 @@ async function Contenido() {
   const [{ data: perfiles }, { data: asistencias }, { data: fechas }] = await Promise.all([
     supabase.from("perfiles").select("id, apodo, rol, activo, creado_en").order("apodo"),
     supabase.from("asistencias").select("perfil_id, juntada_id, salida"),
-    supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio, lugar, creado_por"),
+    supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio, lugar, creado_por, duracion_dias"),
   ]);
 
   const juntadasPorPerfil = new Map<string, Set<string>>();

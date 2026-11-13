@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarHeart, Loader2, Plus, Trash2, X } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { useAhora } from "@/lib/hooks/useAhora";
-import { nombreFecha, ordenarProximas, type FechaEspecial } from "@/lib/fechas";
+import { nombreRango, ordenarProximas, type FechaEspecial } from "@/lib/fechas";
 
 const MESES = [
   "enero",
@@ -33,6 +33,7 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
   const [mes, setMes] = useState(1);
   const [desde, setDesde] = useState("");
   const [lugar, setLugar] = useState("");
+  const [duracion, setDuracion] = useState(1);
   const [borrando, setBorrando] = useState<number | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +50,7 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
       mes,
       desde_anio: anio,
       lugar: lugar.trim() || null,
+      duracion_dias: duracion,
     });
     setOcupado(false);
     if (error) return setError("No se pudo guardar. Revisá la fecha.");
@@ -56,6 +58,7 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
     setNombre("");
     setDesde("");
     setLugar("");
+    setDuracion(1);
     router.refresh();
   }
 
@@ -115,6 +118,17 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
               ))}
             </select>
           </div>
+          <select
+            value={duracion}
+            onChange={(e) => setDuracion(Number(e.target.value))}
+            className="rounded-xl border border-borde bg-fondo px-3 py-3 text-sm outline-none"
+          >
+            {Array.from({ length: 14 }, (_, k) => k + 1).map((n) => (
+              <option key={n} value={n}>
+                {n === 1 ? "Dura 1 día" : `Dura ${n} días`}
+              </option>
+            ))}
+          </select>
           <input
             maxLength={60}
             placeholder="Sede (opcional, ej: Hebraica)"
@@ -158,13 +172,13 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
           <div className="min-w-0 flex-1">
             <p className="truncate font-medium">{f.nombre}</p>
             <p className="text-xs text-texto-suave">
-              {nombreFecha(f.dia, f.mes)}
+              {nombreRango(f)}
               {f.desde_anio && ` · desde ${f.desde_anio}`}
               {f.lugar && ` · 📍 ${f.lugar}`}
             </p>
           </div>
-          <span className={`text-sm font-semibold ${f.dias === 0 ? "text-acento" : ""}`}>
-            {f.dias === 0 ? "¡Hoy!" : `en ${f.dias} ${f.dias === 1 ? "día" : "días"}`}
+          <span className={`text-sm font-semibold ${f.enCurso ? "text-acento" : ""}`}>
+            {f.enCurso ? "¡En curso!" : `en ${f.dias} ${f.dias === 1 ? "día" : "días"}`}
           </span>
           {(esAdmin || f.creado_por === uid) &&
             (borrando === f.id ? (
