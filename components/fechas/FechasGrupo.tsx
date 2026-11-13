@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarHeart, Loader2, Plus, Trash2, X } from "lucide-react";
+import { CalendarHeart, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { useAhora } from "@/lib/hooks/useAhora";
 import { nombreRango, ordenarProximas, type FechaEspecial } from "@/lib/fechas";
@@ -35,6 +35,7 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
   const [lugar, setLugar] = useState("");
   const [duracion, setDuracion] = useState(1);
   const [borrando, setBorrando] = useState<number | null>(null);
+  const [editando, setEditando] = useState<number | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,22 +45,47 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
     setOcupado(true);
     setError(null);
     const anio = desde.trim() ? Number(desde) : null;
-    const { error } = await supabase.from("fechas_especiales").insert({
+    const datos = {
       nombre: nombre.trim(),
       dia: Math.min(dia, DIAS_MES[mes - 1]),
       mes,
       desde_anio: anio,
       lugar: lugar.trim() || null,
       duracion_dias: duracion,
-    });
+    };
+    const { error } = editando
+      ? await supabase.from("fechas_especiales").update(datos).eq("id", editando)
+      : await supabase.from("fechas_especiales").insert(datos);
     setOcupado(false);
     if (error) return setError("No se pudo guardar. Revisá la fecha.");
+    cerrar();
+    router.refresh();
+  }
+
+  function cerrar() {
     setAbierto(false);
+    setEditando(null);
+    setError(null);
     setNombre("");
+    setDia(1);
+    setMes(1);
     setDesde("");
     setLugar("");
     setDuracion(1);
-    router.refresh();
+  }
+
+  function editar(f: FechaEspecial) {
+    setEditando(f.id);
+    setBorrando(null);
+    setNombre(f.nombre);
+    setDia(f.dia);
+    setMes(f.mes);
+    setDesde(f.desde_anio ? String(f.desde_anio) : "");
+    setLugar(f.lugar ?? "");
+    setDuracion(f.duracion_dias ?? 1);
+    setError(null);
+    setAbierto(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function borrar(id: number) {
@@ -86,6 +112,7 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
 
       {abierto && (
         <div className="flex flex-col gap-3 rounded-2xl border border-borde bg-superficie p-4">
+          {editando && <p className="text-sm font-semibold text-acento">Editando evento</p>}
           <input
             autoFocus
             maxLength={40}
@@ -151,9 +178,9 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
               onClick={guardar}
               className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-black disabled:opacity-50"
             >
-              {ocupado && <Loader2 className="size-4 animate-spin" />} Guardar
+              {ocupado && <Loader2 className="size-4 animate-spin" />} {editando ? "Guardar cambios" : "Guardar"}
             </button>
-            <button onClick={() => setAbierto(false)} className="rounded-xl border border-borde px-4">
+            <button onClick={cerrar} className="rounded-xl border border-borde px-4" aria-label="Cancelar">
               <X className="size-4" />
             </button>
           </div>
@@ -190,9 +217,14 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
                 Borrar
               </button>
             ) : (
-              <button onClick={() => setBorrando(f.id)} className="p-1 text-texto-suave" aria-label="Borrar">
-                <Trash2 className="size-4" />
-              </button>
+              <div className="flex">
+                <button onClick={() => editar(f)} className="p-1.5 text-texto-suave" aria-label="Editar">
+                  <Pencil className="size-4" />
+                </button>
+                <button onClick={() => setBorrando(f.id)} className="p-1.5 text-texto-suave" aria-label="Borrar">
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
             ))}
         </div>
       ))}
