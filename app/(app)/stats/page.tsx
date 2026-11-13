@@ -3,6 +3,8 @@ import { usuarioActual } from "@/lib/sesion";
 import { calcularInsignias } from "@/lib/insignias";
 import type { Estadistica } from "@/lib/tipos";
 import { TablaRanking } from "@/components/stats/TablaRanking";
+import { SeccionGastos } from "@/components/stats/SeccionGastos";
+import type { ConsumoG } from "@/lib/gastos";
 
 export default function StatsPage() {
   return (
@@ -25,10 +27,19 @@ export default function StatsPage() {
 
 async function Contenido() {
   const { supabase, uid } = await usuarioActual();
-  const [{ data }, { count: finalizadas }] = await Promise.all([
-    supabase.from("v_estadisticas").select("*"),
-    supabase.from("juntadas").select("id", { count: "exact", head: true }).eq("estado", "finalizada"),
-  ]);
+  const [{ data }, { data: jFin }, { data: asis }, { data: excl }, { data: cons }, { data: perfs }] = await Promise.all(
+    [
+      supabase.from("v_estadisticas").select("*"),
+      supabase.from("juntadas").select("id, nombre, inicio_programado").eq("estado", "finalizada"),
+      supabase.from("asistencias").select("juntada_id, perfil_id"),
+      supabase.from("exclusiones_gasto").select("juntada_id, perfil_id"),
+      supabase.from("consumos").select("juntada_id, tipo, descripcion, monto, pagado_por"),
+      supabase.from("perfiles").select("id, apodo"),
+    ],
+  );
+  const finalizadas = jFin?.length ?? 0;
+  const idsFin = new Set((jFin ?? []).map((j) => j.id));
+  const apodos = Object.fromEntries((perfs ?? []).map((p) => [p.id, p.apodo]));
   const stats = ((data as Estadistica[]) ?? []).map((s) => ({
     ...s,
     horas_totales: Number(s.horas_totales),
@@ -79,6 +90,17 @@ async function Contenido() {
           ))}
         </div>
       </section>
+
+      <SeccionGastos
+        juntadas={jFin ?? []}
+        asistencias={(asis ?? []).filter((a) => idsFin.has(a.juntada_id))}
+        exclusiones={(excl ?? []).filter((e) => idsFin.has(e.juntada_id))}
+        consumos={((cons ?? []) as ConsumoG[])
+          .filter((c) => idsFin.has(c.juntada_id))
+          .map((c) => ({ ...c, monto: c.monto == null ? null : Number(c.monto) }))}
+        apodos={apodos}
+        uid={uid ?? ""}
+      />
 
       <TablaRanking stats={stats} uid={uid ?? ""} />
     </div>

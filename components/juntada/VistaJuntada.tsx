@@ -10,6 +10,7 @@ import { aInputLocal, cronometro, desdeInputLocal, duracion, fechaYHora, hora } 
 import { mensajeError } from "@/lib/errores";
 import type { Asistencia, Confirmacion, Juntada, Perfil } from "@/lib/tipos";
 import { Avatar } from "@/components/ui/Avatar";
+import { SeccionConsumos } from "@/components/juntada/SeccionConsumos";
 
 type Props = {
   juntadaInicial: Juntada;
@@ -318,6 +319,16 @@ export function VistaJuntada({
             </div>
           ))}
         </Seccion>
+      )}
+
+      {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
+        <SeccionConsumos
+          juntadaId={id}
+          uid={uid}
+          puedeGestionar={puedeGestionar}
+          perfiles={perfiles}
+          idsQueVinieron={[...idsQueVinieron]}
+        />
       )}
 
       {juntada.estado === "cancelada" && <Vacio texto="Esta juntada se canceló." />}
