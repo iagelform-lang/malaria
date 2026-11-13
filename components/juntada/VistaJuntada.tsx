@@ -275,6 +275,15 @@ export function VistaJuntada({
         </div>
       )}
 
+      {juntada.estado === "finalizada" && (
+        <Link
+          href={`/juntada/${id}/resumen`}
+          className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black active:scale-[0.98]"
+        >
+          <Flag className="size-5" /> Ver resumen completo
+        </Link>
+      )}
+
       {/* Mi respuesta: Voy (con hora) / No voy */}
       {abierta && !estoyPresente && !idsQueVinieron.has(uid) && (
         <MiRespuesta

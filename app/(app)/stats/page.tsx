@@ -5,6 +5,7 @@ import type { Estadistica } from "@/lib/tipos";
 import { TablaRanking } from "@/components/stats/TablaRanking";
 import { SeccionGastos } from "@/components/stats/SeccionGastos";
 import type { ConsumoG } from "@/lib/gastos";
+import { aNumero, normalizarEstadistica } from "@/lib/numeros";
 
 export default function StatsPage() {
   return (
@@ -40,26 +41,18 @@ async function Contenido() {
   const finalizadas = jFin?.length ?? 0;
   const idsFin = new Set((jFin ?? []).map((j) => j.id));
   const apodos = Object.fromEntries((perfs ?? []).map((p) => [p.id, p.apodo]));
-  const stats = ((data as Estadistica[]) ?? []).map((s) => ({
-    ...s,
-    horas_totales: Number(s.horas_totales),
-    pct_asistencia: s.pct_asistencia == null ? null : Number(s.pct_asistencia),
-    pct_puntualidad: s.pct_puntualidad == null ? null : Number(s.pct_puntualidad),
-    promedio_min_por_juntada: s.promedio_min_por_juntada == null ? null : Number(s.promedio_min_por_juntada),
-  }));
+  // todo a número: sin juntadas terminadas, cada métrica vale 0 (nunca null/NaN)
+  const stats = ((data as Estadistica[]) ?? []).map(normalizarEstadistica);
   const insignias = calcularInsignias(stats);
-  const horasGrupo = stats.reduce((s, x) => s + x.horas_totales, 0);
-
-  if (!finalizadas) {
-    return (
-      <p className="rounded-2xl border border-dashed border-borde p-8 text-center text-texto-suave">
-        Las estadísticas aparecen cuando termine la primera juntada.
-      </p>
-    );
-  }
+  const horasGrupo = stats.reduce((s, x) => s + aNumero(x.horas_totales), 0);
 
   return (
     <div className="flex flex-col gap-8">
+      {finalizadas === 0 && (
+        <p className="-mb-4 text-xs text-texto-suave">
+          Todo arranca en 0: se va llenando cuando termine la primera juntada.
+        </p>
+      )}
       <div className="grid grid-cols-2 gap-3">
         <Dato valor={String(finalizadas)} etiqueta="juntadas" />
         <Dato valor={`${Math.round(horasGrupo).toLocaleString("es-AR")} h`} etiqueta="juntos (sumadas)" />
@@ -83,7 +76,10 @@ async function Contenido() {
                   <p className="text-xs text-texto-suave">{i.valor}</p>
                 </>
               ) : (
-                <p className="text-sm text-texto-suave">{i.pendiente ?? "Vacante"}</p>
+                <>
+                  <p className="text-xl font-bold leading-tight text-texto-suave">Nadie todavía</p>
+                  <p className="text-xs text-texto-suave">{i.pendiente ?? i.valor}</p>
+                </>
               )}
               <p className="mt-auto pt-2 text-[11px] leading-snug text-texto-suave">{i.descripcion}</p>
             </div>
@@ -97,7 +93,7 @@ async function Contenido() {
         exclusiones={(excl ?? []).filter((e) => idsFin.has(e.juntada_id))}
         consumos={((cons ?? []) as ConsumoG[])
           .filter((c) => idsFin.has(c.juntada_id))
-          .map((c) => ({ ...c, monto: c.monto == null ? null : Number(c.monto) }))}
+          .map((c) => ({ ...c, monto: c.monto == null ? null : aNumero(c.monto) }))}
         apodos={apodos}
         uid={uid ?? ""}
       />

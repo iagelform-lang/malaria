@@ -6,8 +6,8 @@ import { crearClienteNavegador } from "@/lib/supabase/client";
 import { calcularCuentas, pesos } from "@/lib/cuentas";
 import { mensajeError } from "@/lib/errores";
 import type { Perfil } from "@/lib/tipos";
-
-export type TipoConsumo = "comida" | "postre" | "bebida" | "otro";
+import { TIPOS, type TipoConsumo } from "@/lib/consumos";
+export { TIPOS };
 
 type Consumo = {
   id: number;
@@ -18,13 +18,6 @@ type Consumo = {
   cargado_por: string;
 };
 type PagoFila = { id: number; de_perfil: string; a_perfil: string; monto: number };
-
-export const TIPOS: { clave: TipoConsumo; etiqueta: string; emoji: string }[] = [
-  { clave: "comida", etiqueta: "Comida", emoji: "🍖" },
-  { clave: "postre", etiqueta: "Postre", emoji: "🍰" },
-  { clave: "bebida", etiqueta: "Bebida", emoji: "🍺" },
-  { clave: "otro", etiqueta: "Otro", emoji: "🧾" },
-];
 
 type Props = {
   juntadaId: string;

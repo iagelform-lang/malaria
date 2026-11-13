@@ -16,9 +16,9 @@ const ORDENES: { clave: Orden; etiqueta: string }[] = [
 
 const valorDe: Record<Orden, (s: Estadistica) => number> = {
   horas: (s) => s.horas_totales,
-  asistencia: (s) => s.pct_asistencia ?? -1,
-  puntualidad: (s) => s.pct_puntualidad ?? -1,
-  promedio: (s) => s.promedio_min_por_juntada ?? -1,
+  asistencia: (s) => s.pct_asistencia ?? 0,
+  puntualidad: (s) => s.pct_puntualidad ?? 0,
+  promedio: (s) => s.promedio_min_por_juntada ?? 0,
 };
 
 export function TablaRanking({ stats, uid }: { stats: Estadistica[]; uid: string }) {
@@ -55,15 +55,15 @@ export function TablaRanking({ stats, uid }: { stats: Estadistica[]; uid: string
             </p>
             <p className="font-mono text-lg font-bold text-acento">
               {orden === "horas" && `${s.horas_totales.toLocaleString("es-AR")} h`}
-              {orden === "asistencia" && (s.pct_asistencia != null ? `${s.pct_asistencia}%` : "—")}
-              {orden === "puntualidad" && (s.pct_puntualidad != null ? `${s.pct_puntualidad}%` : "—")}
-              {orden === "promedio" && duracion(s.promedio_min_por_juntada)}
+              {orden === "asistencia" && `${s.pct_asistencia ?? 0}%`}
+              {orden === "puntualidad" && `${s.pct_puntualidad ?? 0}%`}
+              {orden === "promedio" && duracion(s.promedio_min_por_juntada ?? 0)}
             </p>
           </div>
           <div className="grid grid-cols-4 gap-2 text-center">
             <Mini etiqueta="fue" valor={`${s.juntadas_asistidas}/${s.juntadas_posibles}`} />
-            <Mini etiqueta="promedio" valor={duracion(s.promedio_min_por_juntada)} />
-            <Mini etiqueta="a tiempo" valor={s.pct_puntualidad != null ? `${s.pct_puntualidad}%` : "—"} />
+            <Mini etiqueta="promedio" valor={duracion(s.promedio_min_por_juntada ?? 0)} />
+            <Mini etiqueta="a tiempo" valor={`${s.pct_puntualidad ?? 0}%`} />
             <Mini etiqueta="1° / últ." valor={`${s.veces_primero} / ${s.veces_ultimo}`} />
           </div>
         </div>
