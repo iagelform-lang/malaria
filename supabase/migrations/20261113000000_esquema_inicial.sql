@@ -137,6 +137,10 @@ begin
      set estado = 'activa', iniciada_en = now()
    where id = p_juntada_id and estado = 'propuesta';
   if not found then raise exception 'NO_ESTA_PROPUESTA'; end if;
+  -- quien arranca la juntada está ahí: queda registrada su entrada
+  insert into asistencias (juntada_id, perfil_id, origen_entrada, entrada_registrada_por)
+  values (p_juntada_id, auth.uid(), 'manual', auth.uid())
+  on conflict do nothing;
 end $$;
 
 create or replace function public.cancelar_juntada(p_juntada_id uuid)

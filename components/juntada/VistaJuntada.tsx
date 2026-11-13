@@ -185,7 +185,7 @@ export function VistaJuntada({
           <button
             disabled={ocupado}
             onClick={() =>
-              ejecutar(() => supabase.rpc("iniciar_juntada", { p_juntada_id: id }), "¡Arrancó la juntada!")
+              ejecutar(() => supabase.rpc("iniciar_juntada", { p_juntada_id: id }), "¡Arrancó la juntada! Ya quedaste anotado como presente.")
             }
             className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black active:scale-[0.98] disabled:opacity-50"
           >
