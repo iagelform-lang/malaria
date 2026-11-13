@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* Modo oscuro siempre: la app no tiene modo claro */
+:root {
+  --fondo: #0b0b0f;
+  --superficie: #16161d;
+  --borde: #26262f;
+  --texto: #f4f4f5;
+  --texto-suave: #a1a1aa;
+  --acento: #a3e635;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-fondo: var(--fondo);
+  --color-superficie: var(--superficie);
+  --color-borde: var(--borde);
+  --color-texto: var(--texto);
+  --color-texto-suave: var(--texto-suave);
+  --color-acento: var(--acento);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
+body {
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+body {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/* Espacio para el notch y la barra de gestos del iPhone */
+.pb-seguro {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+.pt-seguro {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
