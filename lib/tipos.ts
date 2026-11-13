@@ -23,7 +23,8 @@ export type Juntada = {
 export type Confirmacion = {
   juntada_id: string;
   perfil_id: string;
-  hora_prometida: string;
+  hora_prometida: string | null;
+  va: boolean;
 };
 
 export type Asistencia = {

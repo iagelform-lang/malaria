@@ -37,13 +37,13 @@ function Esqueleto() {
 }
 
 type JuntadaConConteo = Juntada & {
-  confirmaciones: { count: number }[];
-  asistencias: { count: number }[];
+  confirmaciones: { perfil_id: string; va: boolean }[];
+  asistencias: { perfil_id: string }[];
 };
 
 async function Listado() {
   const { supabase, uid } = await usuarioActual();
-  const campos = "*, confirmaciones(count), asistencias(count)";
+  const campos = "*, confirmaciones(perfil_id, va), asistencias(perfil_id)";
 
   const [{ data: activas }, { data: propuestas }, { data: pasadas }, { data: fechas }, { data: voy }, { data: perfs }] =
     await Promise.all([
@@ -63,6 +63,10 @@ async function Listado() {
   const activa = (activas as JuntadaConConteo[] | null)?.[0];
   const prox = (propuestas as JuntadaConConteo[] | null) ?? [];
   const hist = (pasadas as JuntadaConConteo[] | null) ?? [];
+  // juntadas abiertas a las que el usuario todavía no respondió (ni está presente)
+  const pendientes = [...(activa ? [activa] : []), ...prox].filter(
+    (j) => !j.confirmaciones.some((c) => c.perfil_id === uid) && !j.asistencias.some((a) => a.perfil_id === uid),
+  );
 
   return (
     <div className="flex flex-col gap-8">
@@ -72,6 +76,25 @@ async function Listado() {
         apodos={Object.fromEntries((perfs ?? []).map((p) => [p.id, p.apodo]))}
         uid={uid ?? ""}
       />
+      {pendientes.length > 0 && (
+        <div className="flex flex-col gap-2 rounded-2xl border-2 border-amber-400/60 bg-amber-400/10 p-4">
+          <p className="font-bold text-amber-300">
+            {pendientes.length === 1 ? "Te falta responder si vas" : `Te falta responder ${pendientes.length} juntadas`}
+          </p>
+          {pendientes.map((j) => (
+            <Link
+              key={j.id}
+              href={`/juntada/${j.id}`}
+              className="flex items-center justify-between rounded-xl bg-superficie px-3 py-2.5"
+            >
+              <span className="truncate font-medium">{j.nombre}</span>
+              <span className="flex items-center gap-1 text-sm font-semibold text-acento">
+                Voy / No voy <ChevronRight className="size-4" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
       {activa ? (
         <Link
           href={`/juntada/${activa.id}`}
@@ -88,7 +111,7 @@ async function Listado() {
           )}
           <p className="mt-3 flex items-center justify-between text-sm">
             <span className="flex items-center gap-1">
-              <Users className="size-4" /> {activa.asistencias[0]?.count ?? 0} registros
+              <Users className="size-4" /> {new Set(activa.asistencias.map((a) => a.perfil_id)).size} presentes
             </span>
             <span className="flex items-center text-acento">
               Entrar <ChevronRight className="size-4" />
@@ -104,13 +127,18 @@ async function Listado() {
 
       <Seccion titulo="Propuestas" vacio="Nadie propuso nada todavía.">
         {prox.map((j) => (
-          <FilaJuntada key={j.id} j={j} detalle={`${j.confirmaciones[0]?.count ?? 0} dijeron que van`} />
+          <FilaJuntada key={j.id} j={j} detalle={resumenRespuestas(j)} />
         ))}
       </Seccion>
 
       <Seccion titulo="Últimas" vacio="Todavía no terminó ninguna.">
         {hist.map((j) => (
-          <FilaJuntada key={j.id} j={j} detalle={`${j.asistencias[0]?.count ?? 0} registros`} apagada />
+          <FilaJuntada
+            key={j.id}
+            j={j}
+            detalle={`fueron ${new Set(j.asistencias.map((a) => a.perfil_id)).size}`}
+            apagada
+          />
         ))}
       </Seccion>
     </div>
@@ -144,4 +172,10 @@ function FilaJuntada({ j, detalle, apagada }: { j: Juntada; detalle: string; apa
       <ChevronRight className="size-5 text-texto-suave" />
     </Link>
   );
+}
+
+function resumenRespuestas(j: JuntadaConConteo) {
+  const van = j.confirmaciones.filter((c) => c.va).length;
+  const no = j.confirmaciones.length - van;
+  return `${van} van${no ? ` · ${no} no van` : ""}`;
 }

@@ -125,8 +125,11 @@ export function VistaJuntada({
     })
     .sort((a, b) => b.ultimaSalida.localeCompare(a.ultimaSalida));
   const esperados = confirmaciones
-    .filter((c) => !idsQueVinieron.has(c.perfil_id))
-    .sort((a, b) => a.hora_prometida.localeCompare(b.hora_prometida));
+    .filter((c) => c.va && c.hora_prometida && !idsQueVinieron.has(c.perfil_id))
+    .sort((a, b) => a.hora_prometida!.localeCompare(b.hora_prometida!));
+  const noVan = confirmaciones.filter((c) => !c.va && !idsQueVinieron.has(c.perfil_id));
+  const respondieron = new Set(confirmaciones.map((c) => c.perfil_id));
+  const sinResponder = perfiles.filter((p) => !respondieron.has(p.id) && !idsQueVinieron.has(p.id));
   const miConfirmacion = confirmaciones.find((c) => c.perfil_id === uid);
   const estoyPresente = idsPresentes.has(uid);
   const abierta = juntada.estado === "propuesta" || juntada.estado === "activa";
@@ -272,26 +275,37 @@ export function VistaJuntada({
         </div>
       )}
 
-      {/* Mi hora */}
+      {/* Mi respuesta: Voy (con hora) / No voy */}
       {abierta && !estoyPresente && !idsQueVinieron.has(uid) && (
-        <MiHora
+        <MiRespuesta
           juntada={juntada}
           confirmacion={miConfirmacion}
           ahora={ahora}
-          onGuardar={(iso) =>
+          onVoy={(iso) =>
             ejecutar(
               () =>
                 supabase.from("confirmaciones").upsert({
                   juntada_id: id,
                   perfil_id: uid,
+                  va: true,
                   hora_prometida: iso,
                   actualizado_en: new Date().toISOString(),
                 }),
-              "Listo, quedó anotado.",
+              "Listo, quedó anotado que vas.",
             )
           }
-          onBorrar={() =>
-            ejecutar(() => supabase.from("confirmaciones").delete().eq("juntada_id", id).eq("perfil_id", uid))
+          onNoVoy={() =>
+            ejecutar(
+              () =>
+                supabase.from("confirmaciones").upsert({
+                  juntada_id: id,
+                  perfil_id: uid,
+                  va: false,
+                  hora_prometida: null,
+                  actualizado_en: new Date().toISOString(),
+                }),
+              "Quedó anotado que no vas.",
+            )
           }
         />
       )}
@@ -321,17 +335,17 @@ export function VistaJuntada({
 
       {/* Esperados */}
       {abierta && (
-        <Seccion titulo={`Dijeron que vienen · ${esperados.length}`}>
-          {esperados.length === 0 && <Vacio texto="Nadie dijo a qué hora llega." />}
+        <Seccion titulo={`Van · ${esperados.length}`}>
+          {esperados.length === 0 && <Vacio texto="Todavía nadie dijo que va." />}
           {esperados.map((c) => {
-            const limite = new Date(c.hora_prometida).getTime() + juntada.tolerancia_min * 60_000;
+            const limite = new Date(c.hora_prometida!).getTime() + juntada.tolerancia_min * 60_000;
             const atraso = Math.floor((ahora - limite) / 60_000);
             return (
               <div key={c.perfil_id} className="flex items-center gap-3 rounded-2xl bg-superficie p-3">
                 <Avatar apodo={apodos.get(c.perfil_id)?.apodo ?? "?"} />
                 <div className="flex-1">
                   <p className="font-medium">{apodos.get(c.perfil_id)?.apodo ?? "?"}</p>
-                  <p className="text-sm text-texto-suave">Dijo {hora(c.hora_prometida)}</p>
+                  <p className="text-sm text-texto-suave">Llega {hora(c.hora_prometida!)}</p>
                 </div>
                 {ahoraVivo !== null && juntada.estado === "activa" && atraso > 0 && (
                   <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs text-red-300">
@@ -342,6 +356,22 @@ export function VistaJuntada({
             );
           })}
         </Seccion>
+      )}
+      {abierta && (noVan.length > 0 || sinResponder.length > 0) && (
+        <div className="flex flex-col gap-2 rounded-2xl border border-borde p-3 text-sm">
+          {noVan.length > 0 && (
+            <p>
+              <span className="text-texto-suave">No van ({noVan.length}): </span>
+              {noVan.map((c) => apodos.get(c.perfil_id)?.apodo ?? "?").join(", ")}
+            </p>
+          )}
+          {sinResponder.length > 0 && (
+            <p>
+              <span className="text-amber-300">Falta responder ({sinResponder.length}): </span>
+              {sinResponder.map((p) => p.apodo).join(", ")}
+            </p>
+          )}
+        </div>
       )}
 
       {/* Se fueron */}
@@ -461,69 +491,110 @@ function BotonConfirmar({
   );
 }
 
-function MiHora({
+function MiRespuesta({
   juntada,
   confirmacion,
   ahora,
-  onGuardar,
-  onBorrar,
+  onVoy,
+  onNoVoy,
 }: {
   juntada: Juntada;
   confirmacion?: Confirmacion;
   ahora: number;
-  onGuardar: (iso: string) => void;
-  onBorrar: () => void;
+  onVoy: (iso: string) => void;
+  onNoVoy: () => void;
 }) {
-  const [editando, setEditando] = useState(false);
+  const [eligiendoHora, setEligiendoHora] = useState(false);
   const base = new Date(Math.max(new Date(juntada.inicio_programado).getTime(), ahora + 5 * 60_000));
-  const [valor, setValor] = useState(() => aInputLocal(confirmacion ? new Date(confirmacion.hora_prometida) : base));
-  const vencida = ahora > 0 && confirmacion && new Date(confirmacion.hora_prometida).getTime() <= ahora;
+  const [valor, setValor] = useState(() =>
+    aInputLocal(confirmacion?.hora_prometida ? new Date(confirmacion.hora_prometida) : base),
+  );
+  const vencida =
+    ahora > 0 &&
+    confirmacion?.va &&
+    confirmacion.hora_prometida &&
+    new Date(confirmacion.hora_prometida).getTime() <= ahora;
 
-  if (confirmacion && !editando)
+  // Ya respondió
+  if (confirmacion && !eligiendoHora)
     return (
-      <div className="flex items-center justify-between rounded-2xl border border-borde bg-superficie p-4">
+      <div
+        className={`flex items-center justify-between rounded-2xl border p-4 ${
+          confirmacion.va ? "border-acento/40 bg-acento/10" : "border-borde bg-superficie"
+        }`}
+      >
         <div>
-          <p className="text-sm text-texto-suave">Dijiste que llegás a las</p>
-          <p className="text-2xl font-bold">{hora(confirmacion.hora_prometida)}</p>
+          {confirmacion.va ? (
+            <>
+              <p className="text-sm text-texto-suave">Vas · llegás a las</p>
+              <p className="text-2xl font-bold">{hora(confirmacion.hora_prometida!)}</p>
+            </>
+          ) : (
+            <p className="text-lg font-bold">No vas</p>
+          )}
         </div>
         {vencida ? (
           <span className="text-xs text-texto-suave">Ya no se puede cambiar</span>
         ) : (
           <div className="flex flex-col items-end gap-1">
-            <button onClick={() => setEditando(true)} className="text-sm text-acento">
-              Cambiar
+            <button onClick={() => setEligiendoHora(true)} className="text-sm text-acento">
+              {confirmacion.va ? "Cambiar hora" : "Al final voy"}
             </button>
-            <button onClick={onBorrar} className="text-xs text-texto-suave">
-              Al final no voy
-            </button>
+            {confirmacion.va && (
+              <button onClick={onNoVoy} className="text-xs text-texto-suave">
+                Al final no voy
+              </button>
+            )}
           </div>
         )}
       </div>
     );
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-borde bg-superficie p-4">
-      <p className="font-medium">¿A qué hora llegás?</p>
-      <p className="-mt-2 text-xs text-texto-suave">
-        Cuenta para tu puntualidad (tolerancia {juntada.tolerancia_min} min). La podés cambiar hasta esa hora.
-      </p>
-      <div className="flex gap-2">
-        <input
-          type="datetime-local"
-          value={valor}
-          onChange={(e) => setValor(e.target.value)}
-          className="min-w-0 flex-1 rounded-xl border border-borde bg-fondo px-3 py-3 outline-none focus:border-acento"
-        />
-        <button
-          onClick={() => {
-            onGuardar(desdeInputLocal(valor));
-            setEditando(false);
-          }}
-          className="rounded-xl bg-acento px-4 font-semibold text-black"
-        >
-          Listo
-        </button>
-      </div>
+    <div className="flex flex-col gap-3 rounded-2xl border-2 border-acento/60 bg-superficie p-4">
+      <p className="text-lg font-bold">¿Vas?</p>
+      {!eligiendoHora ? (
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setEligiendoHora(true)}
+            className="rounded-xl bg-acento py-4 text-lg font-bold text-black active:scale-[0.98]"
+          >
+            Voy
+          </button>
+          <button
+            onClick={onNoVoy}
+            className="rounded-xl border border-borde py-4 text-lg font-semibold active:scale-[0.98]"
+          >
+            No voy
+          </button>
+        </div>
+      ) : (
+        <>
+          <p className="-mt-1 text-sm text-texto-suave">
+            ¿A qué hora llegás? Cuenta para tu puntualidad (tolerancia {juntada.tolerancia_min} min).
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="datetime-local"
+              value={valor}
+              onChange={(e) => setValor(e.target.value)}
+              className="min-w-0 flex-1 rounded-xl border border-borde bg-fondo px-3 py-3 outline-none focus:border-acento"
+            />
+            <button
+              onClick={() => {
+                onVoy(desdeInputLocal(valor));
+                setEligiendoHora(false);
+              }}
+              className="rounded-xl bg-acento px-4 font-semibold text-black"
+            >
+              Listo
+            </button>
+          </div>
+          <button onClick={() => setEligiendoHora(false)} className="text-sm text-texto-suave">
+            Volver
+          </button>
+        </>
+      )}
     </div>
   );
 }

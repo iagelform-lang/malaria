@@ -46,6 +46,13 @@ export function FormNuevaJuntada() {
       setError("No se pudo crear la juntada.");
       return;
     }
+    // quien propone la juntada va: queda anotado para la hora de inicio
+    const inicioIso = desdeInputLocal(inicio);
+    if (new Date(inicioIso).getTime() > Date.now()) {
+      await supabase
+        .from("confirmaciones")
+        .insert({ juntada_id: data.id, perfil_id: uid, va: true, hora_prometida: inicioIso });
+    }
     router.replace(`/juntada/${data.id}`);
   }
 
