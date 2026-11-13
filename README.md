@@ -1,4 +1,4 @@
-# Juntadas
+# Malaria 3.0
 
 PWA para registrar asistencia a las juntadas con QR, tiempos de estadía y estadísticas del grupo.
 Next.js 16 (App Router) + Supabase + Tailwind 4.

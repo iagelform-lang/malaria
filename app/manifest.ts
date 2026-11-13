@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Juntadas",
-    short_name: "Juntadas",
+    name: "Malaria 3.0",
+    short_name: "Malaria 3.0",
     description: "Asistencia, tiempos y estadísticas de nuestras juntadas",
     start_url: "/",
     scope: "/",

@@ -66,7 +66,7 @@ export default function LoginPage() {
           <div className="grid size-16 place-items-center rounded-2xl bg-acento/15 text-acento">
             <PartyPopper className="size-8" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Juntadas</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Malaria 3.0</h1>
           <p className="text-texto-suave">
             {paso === "email"
               ? "Entrá con tu mail. Te mandamos un código."

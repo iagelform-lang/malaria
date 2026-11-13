@@ -9,7 +9,7 @@ export default function InicioPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Juntadas</h1>
+        <h1 className="text-2xl font-bold">Malaria 3.0</h1>
         <Link
           href="/juntada/nueva"
           className="flex items-center gap-1.5 rounded-full bg-acento px-4 py-2 text-sm font-semibold text-black active:scale-95"

@@ -4,11 +4,11 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Juntadas",
+  title: "Malaria 3.0",
   description: "Asistencia, tiempos y estadísticas de nuestras juntadas",
   appleWebApp: {
     capable: true,
-    title: "Juntadas",
+    title: "Malaria 3.0",
     statusBarStyle: "black-translucent",
   },
   icons: {
