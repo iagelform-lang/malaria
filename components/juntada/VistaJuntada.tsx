@@ -21,7 +21,14 @@ import {
 } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { useAhora } from "@/lib/hooks/useAhora";
-import { aInputLocal, cronometro, desdeInputLocal, duracion, fechaYHora, hora } from "@/lib/tiempo";
+import {
+  aInputLocal,
+  cronometro,
+  desdeInputLocal,
+  duracion,
+  fechaYHora,
+  hora,
+} from "@/lib/tiempo";
 import { mensajeError } from "@/lib/errores";
 import type { Asistencia, Confirmacion, Juntada, Perfil } from "@/lib/tipos";
 import { Avatar } from "@/components/ui/Avatar";
@@ -41,7 +48,10 @@ type Props = {
   esAdmin: boolean;
 };
 
-const ETIQUETA_ESTADO: Record<Juntada["estado"], { texto: string; clase: string }> = {
+const ETIQUETA_ESTADO: Record<
+  Juntada["estado"],
+  { texto: string; clase: string }
+> = {
   propuesta: { texto: "Propuesta", clase: "bg-sky-500/15 text-sky-300" },
   activa: { texto: "En curso", clase: "bg-acento/15 text-acento" },
   finalizada: { texto: "Finalizada", clase: "bg-zinc-500/20 text-zinc-300" },
@@ -70,13 +80,20 @@ export function VistaJuntada({
   const [editando, setEditando] = useState(false);
 
   const id = juntada.id;
-  const apodos = useMemo(() => new Map(perfiles.map((p) => [p.id, p])), [perfiles]);
+  const apodos = useMemo(
+    () => new Map(perfiles.map((p) => [p.id, p])),
+    [perfiles],
+  );
 
   // ---------- Tiempo real ----------
   const recargar = useCallback(async () => {
     const [j, a, c] = await Promise.all([
       supabase.from("juntadas").select("*").eq("id", id).single(),
-      supabase.from("asistencias").select("*").eq("juntada_id", id).order("entrada"),
+      supabase
+        .from("asistencias")
+        .select("*")
+        .eq("juntada_id", id)
+        .order("entrada"),
       supabase.from("confirmaciones").select("*").eq("juntada_id", id),
     ]);
     if (j.data) setJuntada(j.data as Juntada);
@@ -89,18 +106,41 @@ export function VistaJuntada({
       .channel(`juntada-${id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "asistencias", filter: `juntada_id=eq.${id}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "asistencias",
+          filter: `juntada_id=eq.${id}`,
+        },
         recargar,
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "confirmaciones", filter: `juntada_id=eq.${id}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "confirmaciones",
+          filter: `juntada_id=eq.${id}`,
+        },
         recargar,
       )
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "juntadas", filter: `id=eq.${id}` }, recargar)
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "juntadas" }, (payload) => {
-        if ((payload.old as { id?: string })?.id === id) router.replace("/");
-      })
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "juntadas",
+          filter: `id=eq.${id}`,
+        },
+        recargar,
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "juntadas" },
+        (payload) => {
+          if ((payload.old as { id?: string })?.id === id) router.replace("/");
+        },
+      )
       .subscribe();
 
     // El celular corta el websocket al bloquearse: al volver, refrescamos
@@ -127,23 +167,33 @@ export function VistaJuntada({
           .map((a) => a.salida!)
           .sort()
           .at(-1)!,
-        olvido: suyas.some((a) => a.origen_salida === "auto_12h" || a.origen_salida === "auto_fin"),
+        olvido: suyas.some(
+          (a) =>
+            a.origen_salida === "auto_12h" || a.origen_salida === "auto_fin",
+        ),
       };
     })
     .sort((a, b) => b.ultimaSalida.localeCompare(a.ultimaSalida));
   const esperados = confirmaciones
     .filter((c) => c.va && c.hora_prometida && !idsQueVinieron.has(c.perfil_id))
     .sort((a, b) => a.hora_prometida!.localeCompare(b.hora_prometida!));
-  const noVan = confirmaciones.filter((c) => !c.va && !idsQueVinieron.has(c.perfil_id));
+  const noVan = confirmaciones.filter(
+    (c) => !c.va && !idsQueVinieron.has(c.perfil_id),
+  );
   const respondieron = new Set(confirmaciones.map((c) => c.perfil_id));
-  const sinResponder = perfiles.filter((p) => !respondieron.has(p.id) && !idsQueVinieron.has(p.id));
+  const sinResponder = perfiles.filter(
+    (p) => !respondieron.has(p.id) && !idsQueVinieron.has(p.id),
+  );
   const miConfirmacion = confirmaciones.find((c) => c.perfil_id === uid);
   const estoyPresente = idsPresentes.has(uid);
   const abierta = juntada.estado === "propuesta" || juntada.estado === "activa";
   const estado = ETIQUETA_ESTADO[juntada.estado];
 
   // ---------- Acciones ----------
-  async function ejecutar(fn: () => PromiseLike<{ error: { message?: string } | null }>, ok?: string) {
+  async function ejecutar(
+    fn: () => PromiseLike<{ error: { message?: string } | null }>,
+    ok?: string,
+  ) {
     setOcupado(true);
     setAviso(null);
     const { error } = await fn();
@@ -192,7 +242,17 @@ export function VistaJuntada({
             </button>
           </div>
         </div>
-        <span className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-medium ${estado.clase}`}>{estado.texto}</span>
+        <div className="flex items-center gap-2">
+          <span
+            className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-medium ${estado.clase}`}
+          >
+            {estado.texto}
+          </span>
+          <span className="w-fit rounded-full bg-amber-400/15 px-2.5 py-0.5 text-xs font-medium text-amber-300">
+            ⭐ {juntada.puntos ?? 1}{" "}
+            {(juntada.puntos ?? 1) === 1 ? "punto" : "puntos"}
+          </span>
+        </div>
         <h1 className="text-3xl font-bold leading-tight">{juntada.nombre}</h1>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-texto-suave">
           <span className="flex items-center gap-1">
@@ -209,7 +269,8 @@ export function VistaJuntada({
             </span>
           )}
           <span className="flex items-center gap-1">
-            <Crown className="size-4" /> {apodos.get(juntada.anfitrion_id)?.apodo ?? "?"}
+            <Crown className="size-4" />{" "}
+            {apodos.get(juntada.anfitrion_id)?.apodo ?? "?"}
           </span>
         </div>
       </div>
@@ -240,14 +301,19 @@ export function VistaJuntada({
       {/* Panel del anfitrión */}
       {juntada.estado === "propuesta" && (
         <div className="flex flex-col gap-2">
-          {ahoraVivo !== null && ahora < new Date(juntada.inicio_programado).getTime() ? (
+          {ahoraVivo !== null &&
+          ahora < new Date(juntada.inicio_programado).getTime() ? (
             <div className="flex items-center gap-3 rounded-xl border border-borde bg-superficie p-4">
               <Clock className="size-5 text-acento" />
               <p className="text-sm">
                 Arranca sola a las <b>{hora(juntada.inicio_programado)}</b>
                 {" · "}
                 <span className="text-texto-suave">
-                  en {duracion((new Date(juntada.inicio_programado).getTime() - ahora) / 60_000)}
+                  en{" "}
+                  {duracion(
+                    (new Date(juntada.inicio_programado).getTime() - ahora) /
+                      60_000,
+                  )}
                 </span>
               </p>
             </div>
@@ -264,7 +330,12 @@ export function VistaJuntada({
                 }
                 className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black active:scale-[0.98] disabled:opacity-50"
               >
-                {ocupado ? <Loader2 className="size-5 animate-spin" /> : <Play className="size-5" />} Arrancar ahora
+                {ocupado ? (
+                  <Loader2 className="size-5 animate-spin" />
+                ) : (
+                  <Play className="size-5" />
+                )}{" "}
+                Arrancar ahora
               </button>
             )
           )}
@@ -273,7 +344,11 @@ export function VistaJuntada({
               texto="Cancelar juntada"
               confirmar="Sí, cancelarla"
               peligro
-              onConfirmar={() => ejecutar(() => supabase.rpc("cancelar_juntada", { p_juntada_id: id }))}
+              onConfirmar={() =>
+                ejecutar(() =>
+                  supabase.rpc("cancelar_juntada", { p_juntada_id: id }),
+                )
+              }
             />
           )}
         </div>
@@ -285,7 +360,8 @@ export function VistaJuntada({
               disabled={ocupado}
               onClick={() =>
                 ejecutar(
-                  () => supabase.rpc("registrar_mi_llegada", { p_juntada_id: id }),
+                  () =>
+                    supabase.rpc("registrar_mi_llegada", { p_juntada_id: id }),
                   "Listo, quedaste anotado como presente.",
                 )
               }
@@ -305,7 +381,10 @@ export function VistaJuntada({
             confirmar={`Sí, finalizar${abiertas.length ? ` (cierra ${abiertas.length} salidas)` : ""}`}
             peligro
             onConfirmar={() =>
-              ejecutar(() => supabase.rpc("finalizar_juntada", { p_juntada_id: id }), "Juntada finalizada.")
+              ejecutar(
+                () => supabase.rpc("finalizar_juntada", { p_juntada_id: id }),
+                "Juntada finalizada.",
+              )
             }
           />
         </div>
@@ -369,7 +448,11 @@ export function VistaJuntada({
               puedeGestionar={puedeGestionar && juntada.estado === "activa"}
               onSalida={(iso) =>
                 ejecutar(
-                  () => supabase.rpc("marcar_salida_manual", { p_asistencia_id: a.id, p_hora: iso }),
+                  () =>
+                    supabase.rpc("marcar_salida_manual", {
+                      p_asistencia_id: a.id,
+                      p_hora: iso,
+                    }),
                   `Salida marcada para ${apodos.get(a.perfil_id)?.apodo ?? "?"}.`,
                 )
               }
@@ -381,22 +464,35 @@ export function VistaJuntada({
       {/* Esperados */}
       {abierta && (
         <Seccion titulo={`Van · ${esperados.length}`}>
-          {esperados.length === 0 && <Vacio texto="Todavía nadie dijo que va." />}
+          {esperados.length === 0 && (
+            <Vacio texto="Todavía nadie dijo que va." />
+          )}
           {esperados.map((c) => {
-            const limite = new Date(c.hora_prometida!).getTime() + juntada.tolerancia_min * 60_000;
+            const limite =
+              new Date(c.hora_prometida!).getTime() +
+              juntada.tolerancia_min * 60_000;
             const atraso = Math.floor((ahora - limite) / 60_000);
             return (
-              <div key={c.perfil_id} className="flex items-center gap-3 rounded-2xl bg-superficie p-3">
+              <div
+                key={c.perfil_id}
+                className="flex items-center gap-3 rounded-2xl bg-superficie p-3"
+              >
                 <Avatar apodo={apodos.get(c.perfil_id)?.apodo ?? "?"} />
                 <div className="flex-1">
-                  <p className="font-medium">{apodos.get(c.perfil_id)?.apodo ?? "?"}</p>
-                  <p className="text-sm text-texto-suave">Llega {hora(c.hora_prometida!)}</p>
+                  <p className="font-medium">
+                    {apodos.get(c.perfil_id)?.apodo ?? "?"}
+                  </p>
+                  <p className="text-sm text-texto-suave">
+                    Llega {hora(c.hora_prometida!)}
+                  </p>
                 </div>
-                {ahoraVivo !== null && juntada.estado === "activa" && atraso > 0 && (
-                  <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs text-red-300">
-                    +{duracion(atraso)} tarde
-                  </span>
-                )}
+                {ahoraVivo !== null &&
+                  juntada.estado === "activa" &&
+                  atraso > 0 && (
+                    <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs text-red-300">
+                      +{duracion(atraso)} tarde
+                    </span>
+                  )}
               </div>
             );
           })}
@@ -406,13 +502,19 @@ export function VistaJuntada({
         <div className="flex flex-col gap-2 rounded-2xl border border-borde p-3 text-sm">
           {noVan.length > 0 && (
             <p>
-              <span className="text-texto-suave">No van ({noVan.length}): </span>
-              {noVan.map((c) => apodos.get(c.perfil_id)?.apodo ?? "?").join(", ")}
+              <span className="text-texto-suave">
+                No van ({noVan.length}):{" "}
+              </span>
+              {noVan
+                .map((c) => apodos.get(c.perfil_id)?.apodo ?? "?")
+                .join(", ")}
             </p>
           )}
           {sinResponder.length > 0 && (
             <p>
-              <span className="text-amber-300">Falta responder ({sinResponder.length}): </span>
+              <span className="text-amber-300">
+                Falta responder ({sinResponder.length}):{" "}
+              </span>
               {sinResponder.map((p) => p.apodo).join(", ")}
             </p>
           )}
@@ -421,14 +523,22 @@ export function VistaJuntada({
 
       {/* Se fueron */}
       {seFueron.length > 0 && (
-        <Seccion titulo={`${juntada.estado === "finalizada" ? "Fueron" : "Ya se fueron"} · ${seFueron.length}`}>
+        <Seccion
+          titulo={`${juntada.estado === "finalizada" ? "Fueron" : "Ya se fueron"} · ${seFueron.length}`}
+        >
           {seFueron.map((s, i) => (
-            <div key={s.perfil_id} className="flex items-center gap-3 rounded-2xl bg-superficie p-3">
+            <div
+              key={s.perfil_id}
+              className="flex items-center gap-3 rounded-2xl bg-superficie p-3"
+            >
               <Avatar apodo={apodos.get(s.perfil_id)?.apodo ?? "?"} apagado />
               <div className="flex-1">
                 <p className="font-medium">
                   {apodos.get(s.perfil_id)?.apodo ?? "?"}
-                  {juntada.estado === "finalizada" && i === 0 && !s.olvido && " 💡"}
+                  {juntada.estado === "finalizada" &&
+                    i === 0 &&
+                    !s.olvido &&
+                    " 💡"}
                 </p>
                 <p className="text-sm text-texto-suave">
                   Se fue {hora(s.ultimaSalida)}
@@ -452,7 +562,12 @@ export function VistaJuntada({
       )}
 
       {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
-        <SeccionFotos juntadaId={id} uid={uid} puedeGestionar={puedeGestionar} puedeSubir />
+        <SeccionFotos
+          juntadaId={id}
+          uid={uid}
+          puedeGestionar={puedeGestionar}
+          puedeSubir
+        />
       )}
 
       {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
@@ -475,7 +590,9 @@ export function VistaJuntada({
         />
       )}
 
-      {juntada.estado === "cancelada" && <Vacio texto="Esta juntada se canceló." />}
+      {juntada.estado === "cancelada" && (
+        <Vacio texto="Esta juntada se canceló." />
+      )}
 
       {/* Solo admins: borrar una juntada creada o arrancada por error */}
       {esAdmin && (
@@ -486,7 +603,9 @@ export function VistaJuntada({
             peligro
             onConfirmar={async () => {
               setOcupado(true);
-              const { error } = await supabase.rpc("eliminar_juntada", { p_juntada_id: id });
+              const { error } = await supabase.rpc("eliminar_juntada", {
+                p_juntada_id: id,
+              });
               setOcupado(false);
               if (error) setAviso(mensajeError(error));
               else {
@@ -496,7 +615,8 @@ export function VistaJuntada({
             }}
           />
           <p className="mt-2 text-center text-xs text-texto-suave">
-            Borra la juntada con todas sus entradas, salidas y horas prometidas. No se puede deshacer.
+            Borra la juntada con todas sus entradas, salidas y horas prometidas.
+            No se puede deshacer.
           </p>
         </div>
       )}
@@ -506,10 +626,18 @@ export function VistaJuntada({
 
 // ---------- Subcomponentes ----------
 
-function Seccion({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+function Seccion({
+  titulo,
+  children,
+}: {
+  titulo: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">{titulo}</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">
+        {titulo}
+      </h2>
       {children}
     </section>
   );
@@ -517,7 +645,9 @@ function Seccion({ titulo, children }: { titulo: string; children: React.ReactNo
 
 function Vacio({ texto }: { texto: string }) {
   return (
-    <p className="rounded-2xl border border-dashed border-borde p-4 text-center text-sm text-texto-suave">{texto}</p>
+    <p className="rounded-2xl border border-dashed border-borde p-4 text-center text-sm text-texto-suave">
+      {texto}
+    </p>
   );
 }
 
@@ -553,7 +683,10 @@ function BotonConfirmar({
       >
         {confirmar}
       </button>
-      <button onClick={() => setAbierto(false)} className="rounded-xl border border-borde px-4">
+      <button
+        onClick={() => setAbierto(false)}
+        className="rounded-xl border border-borde px-4"
+      >
         No
       </button>
     </div>
@@ -574,9 +707,15 @@ function MiRespuesta({
   onNoVoy: () => void;
 }) {
   const [eligiendoHora, setEligiendoHora] = useState(false);
-  const base = new Date(Math.max(new Date(juntada.inicio_programado).getTime(), ahora + 5 * 60_000));
+  const base = new Date(
+    Math.max(new Date(juntada.inicio_programado).getTime(), ahora + 5 * 60_000),
+  );
   const [valor, setValor] = useState(() =>
-    aInputLocal(confirmacion?.hora_prometida ? new Date(confirmacion.hora_prometida) : base),
+    aInputLocal(
+      confirmacion?.hora_prometida
+        ? new Date(confirmacion.hora_prometida)
+        : base,
+    ),
   );
   const vencida =
     ahora > 0 &&
@@ -589,24 +728,33 @@ function MiRespuesta({
     return (
       <div
         className={`flex items-center justify-between rounded-2xl border p-4 ${
-          confirmacion.va ? "border-acento/40 bg-acento/10" : "border-borde bg-superficie"
+          confirmacion.va
+            ? "border-acento/40 bg-acento/10"
+            : "border-borde bg-superficie"
         }`}
       >
         <div>
           {confirmacion.va ? (
             <>
               <p className="text-sm text-texto-suave">Vas · llegás a las</p>
-              <p className="text-2xl font-bold">{hora(confirmacion.hora_prometida!)}</p>
+              <p className="text-2xl font-bold">
+                {hora(confirmacion.hora_prometida!)}
+              </p>
             </>
           ) : (
             <p className="text-lg font-bold">No vas</p>
           )}
         </div>
         {vencida ? (
-          <span className="text-xs text-texto-suave">Ya no se puede cambiar</span>
+          <span className="text-xs text-texto-suave">
+            Ya no se puede cambiar
+          </span>
         ) : (
           <div className="flex flex-col items-end gap-1">
-            <button onClick={() => setEligiendoHora(true)} className="text-sm text-acento">
+            <button
+              onClick={() => setEligiendoHora(true)}
+              className="text-sm text-acento"
+            >
               {confirmacion.va ? "Cambiar hora" : "Al final voy"}
             </button>
             {confirmacion.va && (
@@ -640,7 +788,8 @@ function MiRespuesta({
       ) : (
         <>
           <p className="-mt-1 text-sm text-texto-suave">
-            ¿A qué hora llegás? Cuenta para tu puntualidad (tolerancia {juntada.tolerancia_min} min).
+            ¿A qué hora llegás? Cuenta para tu puntualidad (tolerancia{" "}
+            {juntada.tolerancia_min} min).
           </p>
           <div className="flex gap-2">
             <input
@@ -659,7 +808,10 @@ function MiRespuesta({
               Listo
             </button>
           </div>
-          <button onClick={() => setEligiendoHora(false)} className="text-sm text-texto-suave">
+          <button
+            onClick={() => setEligiendoHora(false)}
+            className="text-sm text-texto-suave"
+          >
             Volver
           </button>
         </>
@@ -687,14 +839,19 @@ function FilaPresente({
   const [valor, setValor] = useState(() => aInputLocal(new Date()));
 
   return (
-    <div className={`flex flex-col gap-3 rounded-2xl bg-superficie p-3 ${esYo ? "ring-1 ring-acento/50" : ""}`}>
+    <div
+      className={`flex flex-col gap-3 rounded-2xl bg-superficie p-3 ${esYo ? "ring-1 ring-acento/50" : ""}`}
+    >
       <div className="flex items-center gap-3">
         <Avatar apodo={perfil?.apodo ?? "?"} activo />
         <div className="flex-1">
           <p className="font-medium">
-            {perfil?.apodo ?? "?"} {esYo && <span className="text-xs text-acento">(vos)</span>}
+            {perfil?.apodo ?? "?"}{" "}
+            {esYo && <span className="text-xs text-acento">(vos)</span>}
           </p>
-          <p className="text-sm text-texto-suave">Desde {hora(asistencia.entrada)}</p>
+          <p className="text-sm text-texto-suave">
+            Desde {hora(asistencia.entrada)}
+          </p>
         </div>
         <span className="font-mono text-lg tabular-nums text-acento">
           {ahora ? cronometro(asistencia.entrada, ahora) : "—:—"}
@@ -710,7 +867,9 @@ function FilaPresente({
       </div>
       {abierto && (
         <div className="flex flex-col gap-2 border-t border-borde pt-3">
-          <p className="text-xs text-texto-suave">¿A qué hora se fue {perfil?.apodo ?? ""}? (sin escanear el QR)</p>
+          <p className="text-xs text-texto-suave">
+            ¿A qué hora se fue {perfil?.apodo ?? ""}? (sin escanear el QR)
+          </p>
           <div className="flex gap-2">
             <button
               onClick={() => {

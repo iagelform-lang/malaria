@@ -1,21 +1,32 @@
 import { Dices } from "lucide-react";
-import { emojiJuego, type FilaRanking } from "@/lib/juegos";
+import { emojiJuego, type FilaRanking, type Juego } from "@/lib/juegos";
 
 type Props = {
   total: FilaRanking[];
   porJuego: { juego: string; partidas: number; ranking: FilaRanking[] }[];
   partidas: number;
   apodos: Record<string, string>;
+  catalogo?: Pick<Juego, "nombre" | "emoji">[];
+  titulo?: boolean;
 };
 
 /** Stats de juegos: ranking general de victorias y uno por juego. Sin partidas, todo en 0. */
-export function SeccionJuegos({ total, porJuego, partidas, apodos }: Props) {
+export function SeccionJuegos({
+  total,
+  porJuego,
+  partidas,
+  apodos,
+  catalogo = [],
+  titulo = true,
+}: Props) {
   const campeon = total[0];
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-texto-suave">
-        <Dices className="size-4" /> Juegos
-      </h2>
+      {titulo && (
+        <h2 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-texto-suave">
+          <Dices className="size-4" /> Juegos
+        </h2>
+      )}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-2xl bg-superficie p-4">
           <p className="text-2xl font-bold">{partidas}</p>
@@ -42,7 +53,7 @@ export function SeccionJuegos({ total, porJuego, partidas, apodos }: Props) {
           className="rounded-2xl border border-borde bg-superficie p-4"
         >
           <p className="mb-2 font-semibold">
-            {emojiJuego(j.juego)} {j.juego}{" "}
+            {emojiJuego(j.juego, catalogo)} {j.juego}{" "}
             <span className="text-xs font-normal text-texto-suave">
               · {j.partidas} {j.partidas === 1 ? "partida" : "partidas"}
             </span>

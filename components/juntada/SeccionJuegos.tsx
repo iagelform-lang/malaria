@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Dices, Loader2, Plus, Star, Trash2, X } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { mensajeError } from "@/lib/errores";
-import { JUEGOS, emojiJuego, type Modo } from "@/lib/juegos";
+import { ejemploResultado, emojiJuego, type Modo } from "@/lib/juegos";
+import { useJuegos } from "@/lib/hooks/useJuegos";
 import type { Perfil } from "@/lib/tipos";
 
 type Partida = {
@@ -30,6 +31,7 @@ export function SeccionJuegos({
   idsQueVinieron: string[];
 }) {
   const supabase = useMemo(() => crearClienteNavegador(), []);
+  const { juegos: catalogo } = useJuegos();
   const [partidas, setPartidas] = useState<Partida[]>([]);
   const [abierto, setAbierto] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +85,7 @@ export function SeccionJuegos({
   if (!puedeCargar && partidas.length === 0) return null;
 
   return (
-    <section className="flex flex-col gap-2">
+    <section id="juegos" className="flex scroll-mt-4 flex-col gap-2">
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-texto-suave">
           <Dices className="size-4" /> Juegos{" "}
@@ -130,7 +132,9 @@ export function SeccionJuegos({
             key={p.id}
             className="flex items-start gap-3 rounded-xl bg-superficie px-3 py-2.5"
           >
-            <span className="text-2xl leading-none">{emojiJuego(p.juego)}</span>
+            <span className="text-2xl leading-none">
+              {emojiJuego(p.juego, catalogo)}
+            </span>
             <div className="min-w-0 flex-1">
               <p className="font-semibold">
                 {p.juego}
@@ -181,6 +185,7 @@ function FormPartida({
   guardado: () => void;
 }) {
   const supabase = useMemo(() => crearClienteNavegador(), []);
+  const { juegos: catalogo } = useJuegos();
   const [juego, setJuego] = useState("Truco");
   const [otro, setOtro] = useState("");
   const [modo, setModo] = useState<Modo>("equipos");
@@ -198,12 +203,12 @@ function FormPartida({
       Number(idsQueVinieron.includes(a.id)),
   );
   const nombreJuego = juego === "Otro" ? otro.trim() : juego;
-  const ejemplo = JUEGOS.find((j) => j.nombre === juego)?.ejemplo;
+  const ejemplo = ejemploResultado(juego);
   const ids = Object.keys(jugadores);
 
   function elegirJuego(nombre: string) {
     setJuego(nombre);
-    const m = JUEGOS.find((j) => j.nombre === nombre)?.modo;
+    const m = catalogo.find((j) => j.nombre === nombre)?.modo;
     if (m) cambiarModo(m);
   }
   function cambiarModo(m: Modo) {
@@ -240,6 +245,15 @@ function FormPartida({
     if (!valido) return;
     setOcupado(true);
     setError(null);
+    // un juego nuevo escrito a mano queda en el catálogo para la próxima
+    if (
+      juego === "Otro" &&
+      !catalogo.some(
+        (x) => x.nombre.toLowerCase() === nombreJuego.toLowerCase(),
+      )
+    ) {
+      await supabase.from("juegos").insert({ nombre: nombreJuego, modo });
+    }
     const { data, error } = await supabase
       .from("partidas")
       .insert({
@@ -286,13 +300,13 @@ function FormPartida({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {[...JUEGOS.map((j) => j.nombre), "Otro"].map((n) => (
+        {[...catalogo.map((j) => j.nombre), "Otro"].map((n) => (
           <button
             key={n}
             onClick={() => elegirJuego(n)}
             className={chip(juego === n)}
           >
-            {n === "Otro" ? "Otro…" : `${emojiJuego(n)} ${n}`}
+            {n === "Otro" ? "Otro…" : `${emojiJuego(n, catalogo)} ${n}`}
           </button>
         ))}
       </div>

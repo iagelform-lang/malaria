@@ -7,6 +7,7 @@ export type JW = {
   comida: string | null;
   anfitrion_id: string;
   inicio_programado: string;
+  puntos?: number | null;
   iniciada_en: string | null;
   finalizada_en: string | null;
 };
@@ -39,6 +40,7 @@ export type Wrapped = {
   lugar: { texto: string; veces: number } | null;
   masLarga: { nombre: string; horas: number } | null;
   campeon: Persona | null; // el que más partidas ganó
+  puntos: Persona[]; // tabla de puntos del año (ir a la juntada suma sus puntos)
 };
 export type PW = { id: number; juntada_id: string };
 export type JugW = { partida_id: number; perfil_id: string; gano: boolean };
@@ -158,7 +160,16 @@ export function calcularWrapped(
       victorias.set(j.perfil_id, (victorias.get(j.perfil_id) ?? 0) + 1);
   }
 
+  const puntosDe = new Map(juntadas.map((j) => [j.id, Number(j.puntos) || 1]));
+  const tablaPuntos = [...fue.entries()]
+    .map(([id, s]) => ({
+      id,
+      valor: [...s].reduce((t, jid) => t + (puntosDe.get(jid) ?? 1), 0),
+    }))
+    .sort((a, b) => b.valor - a.valor);
+
   return {
+    puntos: tablaPuntos,
     campeon: maximo(victorias),
     juntadas: juntadas.length,
     horas: Math.round(horas),

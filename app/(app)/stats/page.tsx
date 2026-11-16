@@ -7,7 +7,13 @@ import type { Estadistica } from "@/lib/tipos";
 import { TablaRanking } from "@/components/stats/TablaRanking";
 import { SeccionGastos } from "@/components/stats/SeccionGastos";
 import { SeccionJuegos } from "@/components/stats/SeccionJuegos";
-import { rankingJuegos, type JugadorR, type PartidaR } from "@/lib/juegos";
+import {
+  rankingJuegos,
+  rankingPuntos,
+  type JugadorR,
+  type PartidaR,
+} from "@/lib/juegos";
+import { RankingPuntos } from "@/components/stats/RankingPuntos";
 import type { ConsumoG } from "@/lib/gastos";
 import { aNumero, normalizarEstadistica } from "@/lib/numeros";
 
@@ -55,7 +61,7 @@ async function Contenido() {
     supabase.from("v_estadisticas").select("*"),
     supabase
       .from("juntadas")
-      .select("id, nombre, inicio_programado")
+      .select("id, nombre, inicio_programado, puntos")
       .eq("estado", "finalizada"),
     supabase.from("asistencias").select("juntada_id, perfil_id"),
     supabase.from("exclusiones_gasto").select("juntada_id, perfil_id"),
@@ -88,6 +94,15 @@ async function Contenido() {
           etiqueta="juntos (sumadas)"
         />
       </div>
+
+      <RankingPuntos
+        filas={rankingPuntos(
+          jFin ?? [],
+          (asis ?? []).filter((a) => idsFin.has(a.juntada_id)),
+        )}
+        apodos={apodos}
+        uid={uid ?? ""}
+      />
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">

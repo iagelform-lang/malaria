@@ -19,6 +19,7 @@ export type Juntada = {
   estado: EstadoJuntada;
   anfitrion_id: string;
   creado_por?: string;
+  puntos?: number;
   iniciada_en: string | null;
   finalizada_en: string | null;
 };

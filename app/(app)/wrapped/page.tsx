@@ -64,7 +64,7 @@ async function Contenido({
     supabase
       .from("juntadas")
       .select(
-        "id, nombre, lugar, comida, anfitrion_id, inicio_programado, iniciada_en, finalizada_en",
+        "id, nombre, lugar, comida, anfitrion_id, inicio_programado, iniciada_en, finalizada_en, puntos",
       )
       .eq("estado", "finalizada"),
     supabase.from("asistencias").select("juntada_id, perfil_id, entrada"),
@@ -111,6 +111,23 @@ async function Contenido({
           </p>
         )}
       </div>
+
+      <Tarjeta emoji="⭐" titulo="Tabla de puntos del año">
+        {w.puntos.length ? (
+          <ol className="flex flex-col gap-1">
+            {w.puntos.slice(0, 5).map((p, i) => (
+              <li key={p.id} className="flex justify-between">
+                <span>
+                  {["🥇", "🥈", "🥉", "4.", "5."][i]} {apodo(p)}
+                </span>
+                <b>{p.valor} pts</b>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="text-texto-suave">Todos en 0</p>
+        )}
+      </Tarjeta>
 
       <Tarjeta emoji="🏆" titulo="El que nunca falta">
         {w.asistentes.length ? (

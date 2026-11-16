@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CalendarRange, Loader2, Plus, X } from "lucide-react";
 import { CampoComida } from "@/components/juntada/CampoComida";
+import { ElegirPuntos } from "@/components/juntada/ElegirPuntos";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { aInputLocal, desdeInputLocal } from "@/lib/tiempo";
 
@@ -22,6 +23,7 @@ export function FormNuevaJuntada() {
   const [comida, setComida] = useState("");
   const [inicio, setInicio] = useState(proximaHoraRedonda);
   const [tolerancia, setTolerancia] = useState(15);
+  const [puntos, setPuntos] = useState(1);
   const [votarFecha, setVotarFecha] = useState(true);
   const [casaDe, setCasaDe] = useState("");
   const [miembros, setMiembros] = useState<{ id: string; apodo: string }[]>([]);
@@ -44,12 +46,17 @@ export function FormNuevaJuntada() {
   }, []);
 
   const lugarFinal = () =>
-    lugar.trim() || (casaDe ? `Lo de ${miembros.find((m) => m.id === casaDe)?.apodo ?? ""}`.trim() : "") || null;
+    lugar.trim() ||
+    (casaDe
+      ? `Lo de ${miembros.find((m) => m.id === casaDe)?.apodo ?? ""}`.trim()
+      : "") ||
+    null;
 
   async function abrirVotacion() {
     const fechas = [...new Set(opciones.filter(Boolean))].map(desdeInputLocal);
     if (fechas.length < 2) return setError("Poné al menos 2 fechas distintas.");
-    if (fechas.some((f) => new Date(f).getTime() <= Date.now())) return setError("Las fechas tienen que ser en el futuro.");
+    if (fechas.some((f) => new Date(f).getTime() <= Date.now()))
+      return setError("Las fechas tienen que ser en el futuro.");
     setGuardando(true);
     setError(null);
     const supabase = crearClienteNavegador();
@@ -61,6 +68,7 @@ export function FormNuevaJuntada() {
         comida: comida.trim() || null,
         tolerancia_min: tolerancia,
         casa_de: casaDe || null,
+        puntos,
       })
       .select("id")
       .single();
@@ -96,6 +104,7 @@ export function FormNuevaJuntada() {
         inicio_programado: desdeInputLocal(inicio),
         tolerancia_min: tolerancia,
         anfitrion_id: casaDe || uid,
+        puntos,
       })
       .select("id")
       .single();
@@ -142,7 +151,11 @@ export function FormNuevaJuntada() {
           />
         </Campo>
         <Campo etiqueta="¿En lo de quién? (opcional)">
-          <select value={casaDe} onChange={(e) => setCasaDe(e.target.value)} className={estiloInput}>
+          <select
+            value={casaDe}
+            onChange={(e) => setCasaDe(e.target.value)}
+            className={estiloInput}
+          >
             <option value="">No es en una casa / la organizo yo</option>
             {miembros.map((m) => (
               <option key={m.id} value={m.id}>
@@ -152,19 +165,29 @@ export function FormNuevaJuntada() {
           </select>
           {casaDe && (
             <span className="text-xs text-texto-suave">
-              {miembros.find((m) => m.id === casaDe)?.apodo} va a ser el anfitrión: es el que escanea los QR al llegar.
+              {miembros.find((m) => m.id === casaDe)?.apodo} va a ser el
+              anfitrión: es el que escanea los QR al llegar.
             </span>
           )}
         </Campo>
-        <CampoComida valor={comida} cambiar={setComida} claseInput={estiloInput} />
+        <CampoComida
+          valor={comida}
+          cambiar={setComida}
+          claseInput={estiloInput}
+        />
+        <ElegirPuntos valor={puntos} cambiar={setPuntos} />
         <button
           type="button"
           onClick={() => setVotarFecha(!votarFecha)}
           className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left ${
-            votarFecha ? "border-acento bg-acento/10" : "border-borde bg-superficie"
+            votarFecha
+              ? "border-acento bg-acento/10"
+              : "border-borde bg-superficie"
           }`}
         >
-          <CalendarRange className={`size-5 shrink-0 ${votarFecha ? "text-acento" : "text-texto-suave"}`} />
+          <CalendarRange
+            className={`size-5 shrink-0 ${votarFecha ? "text-acento" : "text-texto-suave"}`}
+          />
           <span className="flex-1 text-sm">
             <b>Votar día y hora.</b>{" "}
             {votarFecha
@@ -174,7 +197,9 @@ export function FormNuevaJuntada() {
           <span
             className={`h-6 w-11 shrink-0 rounded-full p-0.5 transition ${votarFecha ? "bg-acento" : "bg-borde"}`}
           >
-            <span className={`block size-5 rounded-full bg-white transition ${votarFecha ? "translate-x-5" : ""}`} />
+            <span
+              className={`block size-5 rounded-full bg-white transition ${votarFecha ? "translate-x-5" : ""}`}
+            />
           </span>
         </button>
 
@@ -187,13 +212,19 @@ export function FormNuevaJuntada() {
                   required
                   type="datetime-local"
                   value={o}
-                  onChange={(e) => setOpciones(opciones.map((x, k) => (k === i ? e.target.value : x)))}
+                  onChange={(e) =>
+                    setOpciones(
+                      opciones.map((x, k) => (k === i ? e.target.value : x)),
+                    )
+                  }
                   className={estiloInput}
                 />
                 {opciones.length > 2 && (
                   <button
                     type="button"
-                    onClick={() => setOpciones(opciones.filter((_, k) => k !== i))}
+                    onClick={() =>
+                      setOpciones(opciones.filter((_, k) => k !== i))
+                    }
                     className="rounded-xl border border-borde px-3 text-texto-suave"
                     aria-label="Quitar fecha"
                   >
@@ -206,7 +237,9 @@ export function FormNuevaJuntada() {
               <button
                 type="button"
                 onClick={() => {
-                  const ultima = new Date(desdeInputLocal(opciones.at(-1) ?? proximaHoraRedonda()));
+                  const ultima = new Date(
+                    desdeInputLocal(opciones.at(-1) ?? proximaHoraRedonda()),
+                  );
                   ultima.setDate(ultima.getDate() + 1);
                   setOpciones([...opciones, aInputLocal(ultima)]);
                 }}
@@ -253,7 +286,13 @@ export function FormNuevaJuntada() {
   );
 }
 
-function Campo({ etiqueta, children }: { etiqueta: string; children: React.ReactNode }) {
+function Campo({
+  etiqueta,
+  children,
+}: {
+  etiqueta: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="flex flex-col gap-2">
       <span className="text-sm text-texto-suave">{etiqueta}</span>

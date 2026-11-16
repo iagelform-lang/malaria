@@ -30,9 +30,74 @@ export const JUEGOS: {
   { nombre: "Terminator", emoji: "🤖", modo: "individual", ejemplo: "" },
 ];
 
-export const emojiJuego = (juego: string) =>
+export type Juego = {
+  id: number;
+  nombre: string;
+  emoji: string;
+  modo: Modo;
+  predeterminado: boolean;
+  creado_por: string | null;
+};
+
+/** Emoji del juego según el catálogo (o el predeterminado, o 🏅) */
+export const emojiJuego = (
+  juego: string,
+  catalogo: Pick<Juego, "nombre" | "emoji">[] = JUEGOS,
+) =>
+  [...catalogo, ...JUEGOS].find(
+    (j) => j.nombre.toLowerCase() === juego.trim().toLowerCase(),
+  )?.emoji ?? "🏅";
+
+export const ejemploResultado = (juego: string) =>
   JUEGOS.find((j) => j.nombre.toLowerCase() === juego.trim().toLowerCase())
-    ?.emoji ?? "🏅";
+    ?.ejemplo ?? "";
+
+export const EMOJIS_JUEGO = [
+  "🏅",
+  "🎱",
+  "🏓",
+  "⚽",
+  "🏀",
+  "🎯",
+  "🎳",
+  "♟️",
+  "🀄",
+  "🎤",
+  "🍺",
+  "🕹️",
+];
+
+// ---------- Puntos de cada juntada ----------
+export const NIVELES = [
+  { puntos: 1, nombre: "Normal", detalle: "1 punto" },
+  { puntos: 5, nombre: "Media", detalle: "5 puntos" },
+  { puntos: 10, nombre: "Importante", detalle: "10 puntos · ej: cumpleaños" },
+] as const;
+export const nivelDe = (puntos: number) =>
+  NIVELES.find((n) => n.puntos === puntos) ?? NIVELES[0];
+
+/** Puntos por ir: cada uno suma los puntos de las juntadas terminadas a las que fue */
+export function rankingPuntos(
+  juntadas: { id: string; puntos: number | null }[],
+  asistencias: { juntada_id: string; perfil_id: string }[],
+) {
+  const puntos = new Map(juntadas.map((j) => [j.id, Number(j.puntos) || 1]));
+  const vistos = new Set<string>();
+  const total = new Map<string, { puntos: number; juntadas: number }>();
+  for (const a of asistencias) {
+    const p = puntos.get(a.juntada_id);
+    const clave = `${a.juntada_id}|${a.perfil_id}`;
+    if (p === undefined || vistos.has(clave)) continue;
+    vistos.add(clave);
+    const x = total.get(a.perfil_id) ?? { puntos: 0, juntadas: 0 };
+    x.puntos += p;
+    x.juntadas++;
+    total.set(a.perfil_id, x);
+  }
+  return [...total.entries()]
+    .map(([perfil_id, x]) => ({ perfil_id, ...x }))
+    .sort((a, b) => b.puntos - a.puntos || b.juntadas - a.juntadas);
+}
 
 export type PartidaR = { id: number; juego: string };
 export type JugadorR = { partida_id: number; perfil_id: string; gano: boolean };
