@@ -10,7 +10,7 @@ import { mensajeError } from "@/lib/errores";
  *  1. Se eligen los jugadores del torneo.
  *  2. Cada duelo es 1 vs 1: los que no juegan cargan 10 nombres, la app los sortea de a uno
  *     y se subastan con $15 por jugador hasta tener 5 cada uno.
- *  3. Al mejor de 3: cada uno presenta una de las suyas y los que miran eligen cuál gana.
+ *  3. Al mejor de 5: cada uno presenta una de las suyas y los que miran eligen cuál gana.
  *  4. Torneo con cuadro de ganadores y de perdedores (al segundo duelo perdido, afuera).
  * Los nombres NUNCA se guardan: viven solo en este celular mientras dura el duelo.
  * Lo único que se guarda es la partida (quién jugó, quién ganó y el resultado).
@@ -19,6 +19,7 @@ import { mensajeError } from "@/lib/errores";
 const PRESUPUESTO = 15;
 const POR_JUGADOR = 5;
 const NOMBRES = POR_JUGADOR * 2;
+const GANA = 3; // al mejor de 5
 
 type Cuadro = "ganadores" | "perdedores" | "final";
 type Duelo = { a: string; b: string; cuadro: Cuadro };
@@ -115,7 +116,7 @@ export function JuegoBid({
     if (nuevas.length === NOMBRES) setFase("duelo");
   }
 
-  // ---------- Duelo al mejor de 3 ----------
+  // ---------- Duelo al mejor de 5 ----------
   const puntos = (lado: "a" | "b") => rondas.filter((r) => r.gana === lado).length;
   const usadas = (lado: "a" | "b") => new Set(rondas.map((r) => r[lado]));
 
@@ -126,7 +127,7 @@ export function JuegoBid({
     setEleccion({ a: null, b: null });
     const pa = nuevas.filter((r) => r.gana === "a").length;
     const pb = nuevas.filter((r) => r.gana === "b").length;
-    if (pa === 2 || pb === 2) await cerrarDuelo(pa === 2 ? duelo.a : duelo.b, pa === 2 ? duelo.b : duelo.a, `${Math.max(pa, pb)} a ${Math.min(pa, pb)}`);
+    if (pa === GANA || pb === GANA) await cerrarDuelo(pa === GANA ? duelo.a : duelo.b, pa === GANA ? duelo.b : duelo.a, `${Math.max(pa, pb)} a ${Math.min(pa, pb)}`);
   }
 
   async function cerrarDuelo(ganador: string, perdedor: string, marcador: string) {
@@ -376,7 +377,7 @@ export function JuegoBid({
           <p className="text-center text-4xl font-black">
             {puntos("a")} <span className="text-texto-suave">-</span> {puntos("b")}
           </p>
-          <p className="-mt-3 text-center text-xs text-texto-suave">Al mejor de 3 · ronda {rondas.length + 1}</p>
+          <p className="-mt-3 text-center text-xs text-texto-suave">Al mejor de 5 · ronda {rondas.length + 1}</p>
           {(["a", "b"] as const).map((lado) => {
             const j = lado === "a" ? duelo.a : duelo.b;
             return (

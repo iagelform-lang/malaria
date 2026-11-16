@@ -108,7 +108,7 @@ async function Contenido() {
         <span className="text-3xl">🔨</span>
         <div className="min-w-0 flex-1">
           <p className="font-bold">Jugar Bid Womens</p>
-          <p className="text-sm text-texto-suave">Subasta, duelos al mejor de 3 y torneo</p>
+          <p className="text-sm text-texto-suave">Subasta, duelos al mejor de 5 y torneo</p>
         </div>
         <ChevronRight className="size-5 text-acento" />
       </Link>
