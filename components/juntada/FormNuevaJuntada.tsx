@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CalendarRange, Loader2, Plus, X } from "lucide-react";
@@ -22,7 +22,9 @@ export function FormNuevaJuntada() {
   const [comida, setComida] = useState("");
   const [inicio, setInicio] = useState(proximaHoraRedonda);
   const [tolerancia, setTolerancia] = useState(15);
-  const [votarFecha, setVotarFecha] = useState(false);
+  const [votarFecha, setVotarFecha] = useState(true);
+  const [casaDe, setCasaDe] = useState("");
+  const [miembros, setMiembros] = useState<{ id: string; apodo: string }[]>([]);
   const [opciones, setOpciones] = useState<string[]>(() => {
     const base = proximaHoraRedonda();
     const otra = new Date(desdeInputLocal(base));
@@ -31,6 +33,18 @@ export function FormNuevaJuntada() {
   });
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    crearClienteNavegador()
+      .from("perfiles")
+      .select("id, apodo")
+      .eq("activo", true)
+      .order("apodo")
+      .then(({ data }) => setMiembros(data ?? []));
+  }, []);
+
+  const lugarFinal = () =>
+    lugar.trim() || (casaDe ? `Lo de ${miembros.find((m) => m.id === casaDe)?.apodo ?? ""}`.trim() : "") || null;
 
   async function abrirVotacion() {
     const fechas = [...new Set(opciones.filter(Boolean))].map(desdeInputLocal);
@@ -46,6 +60,7 @@ export function FormNuevaJuntada() {
         lugar: lugar.trim() || null,
         comida: comida.trim() || null,
         tolerancia_min: tolerancia,
+        casa_de: casaDe || null,
       })
       .select("id")
       .single();
@@ -76,11 +91,11 @@ export function FormNuevaJuntada() {
       .from("juntadas")
       .insert({
         nombre: nombre.trim(),
-        lugar: lugar.trim() || null,
+        lugar: lugarFinal(),
         comida: comida.trim() || null,
         inicio_programado: desdeInputLocal(inicio),
         tolerancia_min: tolerancia,
-        anfitrion_id: uid,
+        anfitrion_id: casaDe || uid,
       })
       .select("id")
       .single();
@@ -89,13 +104,7 @@ export function FormNuevaJuntada() {
       setError("No se pudo crear la juntada.");
       return;
     }
-    // quien propone la juntada va: queda anotado para la hora de inicio
-    const inicioIso = desdeInputLocal(inicio);
-    if (new Date(inicioIso).getTime() > Date.now()) {
-      await supabase
-        .from("confirmaciones")
-        .insert({ juntada_id: data.id, perfil_id: uid, va: true, hora_prometida: inicioIso });
-    }
+    // el que propone y el anfitrión quedan anotados como que van (lo hace la base)
     router.replace(`/juntada/${data.id}`);
   }
 
@@ -132,6 +141,21 @@ export function FormNuevaJuntada() {
             className={estiloInput}
           />
         </Campo>
+        <Campo etiqueta="¿En lo de quién? (opcional)">
+          <select value={casaDe} onChange={(e) => setCasaDe(e.target.value)} className={estiloInput}>
+            <option value="">No es en una casa / la organizo yo</option>
+            {miembros.map((m) => (
+              <option key={m.id} value={m.id}>
+                En lo de {m.apodo}
+              </option>
+            ))}
+          </select>
+          {casaDe && (
+            <span className="text-xs text-texto-suave">
+              {miembros.find((m) => m.id === casaDe)?.apodo} va a ser el anfitrión: es el que escanea los QR al llegar.
+            </span>
+          )}
+        </Campo>
         <CampoComida valor={comida} cambiar={setComida} claseInput={estiloInput} />
         <button
           type="button"
@@ -142,7 +166,10 @@ export function FormNuevaJuntada() {
         >
           <CalendarRange className={`size-5 shrink-0 ${votarFecha ? "text-acento" : "text-texto-suave"}`} />
           <span className="flex-1 text-sm">
-            <b>¿No saben qué día?</b> Proponé varias fechas y que cada uno vote cuáles puede.
+            <b>Votar día y hora.</b>{" "}
+            {votarFecha
+              ? "Cada uno marca las fechas que puede y se define sola cuando la mayoría coincide."
+              : "Apagado: la juntada queda con una sola fecha fija."}
           </span>
           <span
             className={`h-6 w-11 shrink-0 rounded-full p-0.5 transition ${votarFecha ? "bg-acento" : "bg-borde"}`}

@@ -14,10 +14,11 @@ export default function SondeoPage({ params }: PageProps<"/sondeo/[id]">) {
 async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase, uid, esAdmin } = await usuarioActual();
-  const [{ data: sondeo }, { data: opciones }, { data: perfiles }] = await Promise.all([
+  const [{ data: sondeo }, { data: opciones }, { data: perfiles }, { data: mayoria }] = await Promise.all([
     supabase.from("sondeos").select("*").eq("id", id).maybeSingle(),
     supabase.from("sondeo_opciones").select("id, inicio").eq("sondeo_id", id).order("inicio"),
     supabase.from("perfiles").select("id, apodo").eq("activo", true),
+    supabase.rpc("votos_para_mayoria"),
   ]);
   if (!sondeo) notFound();
   // ya se eligió la fecha: la votación vive en la juntada
@@ -36,6 +37,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
       perfiles={perfiles ?? []}
       uid={uid ?? ""}
       puedeElegir={esAdmin || sondeo.creado_por === uid}
+      mayoria={Number(mayoria) || 1}
     />
   );
 }

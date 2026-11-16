@@ -18,6 +18,7 @@ export type Juntada = {
   tolerancia_min: number;
   estado: EstadoJuntada;
   anfitrion_id: string;
+  creado_por?: string;
   iniciada_en: string | null;
   finalizada_en: string | null;
 };

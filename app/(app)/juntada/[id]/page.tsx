@@ -41,7 +41,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
       asistenciasIniciales={(asistencias as Asistencia[]) ?? []}
       confirmacionesIniciales={(confirmaciones as Confirmacion[]) ?? []}
       uid={uid!}
-      puedeGestionar={esAdmin || j.anfitrion_id === uid}
+      puedeGestionar={esAdmin || j.anfitrion_id === uid || j.creado_por === uid}
       esAdmin={esAdmin}
     />
   );

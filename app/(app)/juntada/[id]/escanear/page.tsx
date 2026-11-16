@@ -17,12 +17,12 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   const { supabase, uid, esAdmin } = await usuarioActual();
   const { data: j } = await supabase
     .from("juntadas")
-    .select("id, nombre, estado, anfitrion_id")
+    .select("id, nombre, estado, anfitrion_id, creado_por")
     .eq("id", id)
     .maybeSingle();
   if (!j) notFound();
 
-  const puede = esAdmin || j.anfitrion_id === uid;
+  const puede = esAdmin || j.anfitrion_id === uid || j.creado_por === uid;
   if (!puede || j.estado !== "activa") {
     return (
       <div className="flex flex-col items-center gap-4 pt-16 text-center">

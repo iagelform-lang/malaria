@@ -15,6 +15,7 @@ export type Sondeo = {
   lugar: string | null;
   comida: string | null;
   creado_por: string;
+  casa_de: string | null;
   estado: "abierto" | "cerrado";
 };
 export type Opcion = { id: number; inicio: string };
@@ -27,6 +28,7 @@ export function VistaSondeo({
   perfiles,
   uid,
   puedeElegir,
+  mayoria,
 }: {
   sondeo: Sondeo;
   opciones: Opcion[];
@@ -34,6 +36,7 @@ export function VistaSondeo({
   perfiles: { id: string; apodo: string }[];
   uid: string;
   puedeElegir: boolean;
+  mayoria: number;
 }) {
   const router = useRouter();
   const supabase = useMemo(() => crearClienteNavegador(), []);
@@ -75,8 +78,11 @@ export function VistaSondeo({
       ? await supabase.from("sondeo_votos").delete().eq("opcion_id", o.id).eq("perfil_id", uid)
       : await supabase.from("sondeo_votos").insert({ opcion_id: o.id });
     setOcupado(null);
-    if (error) setAviso(mensajeError(error));
-    else await recargar();
+    if (error) return setAviso(mensajeError(error));
+    // si con este voto llegó a la mayoría, ya se armó la juntada
+    const { data: s } = await supabase.from("sondeos").select("estado, juntada_id").eq("id", sondeo.id).single();
+    if (s?.estado === "cerrado" && s.juntada_id) return router.replace(`/juntada/${s.juntada_id}`);
+    await recargar();
   }
 
   async function elegir(o: Opcion) {
@@ -119,13 +125,16 @@ export function VistaSondeo({
             </span>
           )}
           <span className="flex items-center gap-1">
-            <Crown className="size-4" /> {apodo(sondeo.creado_por)}
+            <Crown className="size-4" /> {sondeo.casa_de ? `En lo de ${apodo(sondeo.casa_de)}` : apodo(sondeo.creado_por)}
           </span>
         </div>
       </div>
 
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Tocá las fechas que podés</h2>
+        <p className="-mt-1 text-xs text-texto-suave">
+          Se define sola cuando una fecha llega a <b className="text-acento">{mayoria} votos</b> (la mayoría del grupo).
+        </p>
         {opciones.map((o) => {
           const quienes = conteo(o.id);
           const mio = quienes.some((v) => v.perfil_id === uid);
@@ -157,6 +166,7 @@ export function VistaSondeo({
                 </div>
                 <span className={`flex items-center gap-1 text-lg font-black ${lider ? "text-acento" : "text-texto-suave"}`}>
                   {lider && <Trophy className="size-4" />} {quienes.length}
+                  <span className="text-xs font-normal text-texto-suave">/{mayoria}</span>
                 </span>
               </div>
               {abierto && puedeElegir && !pasada && (

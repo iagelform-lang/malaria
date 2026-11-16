@@ -216,6 +216,7 @@ export function VistaJuntada({
       {editando && (
         <EditarJuntada
           juntada={juntada}
+          perfiles={perfiles}
           cerrar={() => setEditando(false)}
           guardado={async () => {
             setEditando(false);
@@ -690,16 +691,15 @@ function FilaPresente({
         {puedeGestionar && (
           <button
             onClick={() => setAbierto(!abierto)}
-            className="rounded-lg border border-borde p-2 text-texto-suave"
-            aria-label="Marcar salida"
+            className="flex items-center gap-1 rounded-lg border border-borde px-2 py-1.5 text-xs font-semibold text-texto-suave"
           >
-            <DoorOpen className="size-4" />
+            <DoorOpen className="size-4" /> Se fue
           </button>
         )}
       </div>
       {abierto && (
         <div className="flex flex-col gap-2 border-t border-borde pt-3">
-          <p className="text-xs text-texto-suave">Marcar salida manual</p>
+          <p className="text-xs text-texto-suave">¿A qué hora se fue {perfil?.apodo ?? ""}? (sin escanear el QR)</p>
           <div className="flex gap-2">
             <button
               onClick={() => {

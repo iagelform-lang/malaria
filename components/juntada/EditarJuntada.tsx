@@ -5,7 +5,7 @@ import { Loader2, X } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { aInputLocal, desdeInputLocal } from "@/lib/tiempo";
 import { mensajeError } from "@/lib/errores";
-import type { Juntada } from "@/lib/tipos";
+import type { Juntada, Perfil } from "@/lib/tipos";
 import { CampoComida } from "@/components/juntada/CampoComida";
 
 /**
@@ -14,10 +14,12 @@ import { CampoComida } from "@/components/juntada/CampoComida";
  */
 export function EditarJuntada({
   juntada,
+  perfiles,
   cerrar,
   guardado,
 }: {
   juntada: Juntada;
+  perfiles: Perfil[];
   cerrar: () => void;
   guardado: () => void;
 }) {
@@ -30,6 +32,7 @@ export function EditarJuntada({
   const inicioOriginal = useMemo(() => aInputLocal(new Date(juntada.inicio_programado)), [juntada.inicio_programado]);
   const [inicio, setInicio] = useState(inicioOriginal);
   const [tolerancia, setTolerancia] = useState(juntada.tolerancia_min);
+  const [anfitrion, setAnfitrion] = useState(juntada.anfitrion_id);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +50,7 @@ export function EditarJuntada({
     if (!terminada) {
       cambios.nombre = nombre.trim();
       cambios.lugar = lugar.trim() || null;
+      if (anfitrion !== juntada.anfitrion_id) cambios.anfitrion_id = anfitrion;
     }
     if (propuesta) cambios.tolerancia_min = tolerancia;
     if (cambiaHora) cambios.inicio_programado = desdeInputLocal(inicio);
@@ -79,6 +83,16 @@ export function EditarJuntada({
               onChange={(e) => setNombre(e.target.value)}
               className={estiloInput}
             />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="text-sm text-texto-suave">Anfitrión (pone la casa y escanea los QR)</span>
+            <select value={anfitrion} onChange={(e) => setAnfitrion(e.target.value)} className={estiloInput}>
+              {perfiles.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.apodo}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="flex flex-col gap-2">
             <span className="text-sm text-texto-suave">¿Dónde? (opcional)</span>
