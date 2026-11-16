@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Crown, Gavel, Loader2, Minus, Plus, Shuffle, Trophy, Undo2 } from "lucide-react";
+import { Crown, Gavel, Loader2, Minus, Plus, RotateCcw, Shuffle, Trophy, Undo2 } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { mensajeError } from "@/lib/errores";
 import {
@@ -58,6 +58,8 @@ export function JuegoBid({
   const [empezado, setEmpezado] = useState(false);
   const [torneo, setTorneo] = useState<Torneo | null>(null);
   const [puestos, setPuestos] = useState<{ perfil: string; puesto: number }[] | null>(null);
+  const [torneoId, setTorneoId] = useState<number | null>(null);
+  const [confirmarReinicio, setConfirmarReinicio] = useState(false);
 
   // duelo en curso (solo en memoria)
   const [fase, setFase] = useState<"nombres" | "subasta" | "duelo" | "resultado">("nombres");
@@ -74,10 +76,34 @@ export function JuegoBid({
   const partido = torneo && !puestos ? proximoPartido(torneo) : null;
   const duelo = partido ? { a: partido.a!, b: partido.b!, ronda: partido.ronda } : null;
 
-  function empezar() {
+  async function empezar() {
+    setError(null);
+    setGuardando(true);
+    // el torneo se crea al empezar: así sus duelos quedan atados y "comenzar de nuevo" los borra todos
+    const { data, error } = await supabase
+      .from("torneos")
+      .insert({ juego: "Bid Womens", juntada_id: juntadaId })
+      .select("id")
+      .single();
+    setGuardando(false);
+    if (error || !data) return setError(mensajeError(error ?? { message: "" }));
+    setTorneoId(data.id);
     setTorneo(sortearTorneo(elegidos));
     setPuestos(null);
     setEmpezado(true);
+    nuevoDuelo();
+  }
+
+  async function comenzarDeNuevo() {
+    setGuardando(true);
+    // borra el torneo y todos los duelos que ya se habían guardado
+    if (torneoId) await supabase.from("torneos").delete().eq("id", torneoId);
+    setGuardando(false);
+    setConfirmarReinicio(false);
+    setTorneoId(null);
+    setTorneo(null);
+    setPuestos(null);
+    setEmpezado(false);
     nuevoDuelo();
   }
 
@@ -135,7 +161,7 @@ export function JuegoBid({
     // se guarda solo quién jugó y quién ganó: los nombres no salen de este celular
     const { data, error } = await supabase
       .from("partidas")
-      .insert({ juntada_id: juntadaId, juego: "Bid Womens", resultado: marcador })
+      .insert({ juntada_id: juntadaId, juego: "Bid Womens", resultado: marcador, torneo_id: torneoId })
       .select("id")
       .single();
     if (!error && data) {
@@ -168,19 +194,11 @@ export function JuegoBid({
   }
 
   async function guardarTorneo(fin: { perfil: string; puesto: number }[]) {
-    const { data, error } = await supabase
-      .from("torneos")
-      .insert({ juego: "Bid Womens", juntada_id: juntadaId })
-      .select("id")
-      .single();
-    if (error || !data) return setError(mensajeError(error ?? { message: "" }));
+    if (!torneoId) return;
     const { error: e2 } = await supabase.from("torneo_posiciones").insert(
-      fin.map((x) => ({ torneo_id: data.id, perfil_id: x.perfil, puesto: x.puesto, puntos: puntosDePuesto(x.puesto) })),
+      fin.map((x) => ({ torneo_id: torneoId, perfil_id: x.perfil, puesto: x.puesto, puntos: puntosDePuesto(x.puesto) })),
     );
-    if (e2) {
-      await supabase.from("torneos").delete().eq("id", data.id);
-      setError(mensajeError(e2));
-    }
+    if (e2) setError(mensajeError(e2));
   }
 
   const chip = (activo: boolean) =>
@@ -208,7 +226,7 @@ export function JuegoBid({
           })}
         </div>
         <button
-          disabled={elegidos.length < 2 || elegidos.length > MAX_JUGADORES}
+          disabled={elegidos.length < 2 || elegidos.length > MAX_JUGADORES || guardando}
           onClick={empezar}
           className="rounded-xl bg-acento py-3 font-bold text-black disabled:opacity-50"
         >
@@ -216,11 +234,42 @@ export function JuegoBid({
             ? `Máximo ${MAX_JUGADORES} jugadores`
             : `Sortear el cuadro (${elegidos.length} jugadores)`}
         </button>
+        {error && <p className="text-sm text-red-400">{error}</p>}
       </div>
     );
   }
 
-  const Cuadros = torneo ? <VistaCuadro torneo={torneo} apodo={apodo} /> : null;
+  const Reinicio = confirmarReinicio ? (
+    <div className="flex flex-col gap-2 rounded-2xl border border-red-500/40 bg-red-500/10 p-3 text-sm">
+      <p>¿Empezar de cero? Se borra este torneo y los duelos que ya se jugaron en él. No suma puntos a nadie.</p>
+      <div className="grid grid-cols-2 gap-2">
+        <button onClick={() => setConfirmarReinicio(false)} className="rounded-xl border border-borde py-2">
+          Cancelar
+        </button>
+        <button
+          disabled={guardando}
+          onClick={comenzarDeNuevo}
+          className="flex items-center justify-center gap-1 rounded-xl bg-red-500 py-2 font-semibold text-white"
+        >
+          {guardando && <Loader2 className="size-4 animate-spin" />} Sí, borrar
+        </button>
+      </div>
+    </div>
+  ) : (
+    <button
+      onClick={() => setConfirmarReinicio(true)}
+      className="flex items-center justify-center gap-1 text-sm text-texto-suave"
+    >
+      <RotateCcw className="size-4" /> Comenzar de nuevo
+    </button>
+  );
+
+  const Cuadros = torneo ? (
+    <>
+      <VistaCuadro torneo={torneo} apodo={apodo} />
+      {!puestos && Reinicio}
+    </>
+  ) : null;
 
   if (puestos && fase === "resultado") {
     return (
@@ -249,6 +298,7 @@ export function JuegoBid({
           onClick={() => {
             setEmpezado(false);
             setTorneo(null);
+            setTorneoId(null);
             setPuestos(null);
           }}
           className="w-full rounded-xl bg-acento py-3 font-bold text-black"

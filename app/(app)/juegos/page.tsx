@@ -12,6 +12,7 @@ import {
 import { CatalogoJuegos } from "@/components/juegos/CatalogoJuegos";
 import { SeccionJuegos } from "@/components/stats/SeccionJuegos";
 import { TablaJuegos } from "@/components/stats/TablaJuegos";
+import { ListaTorneos, type TorneoLista } from "@/components/juegos/ListaTorneos";
 import { tablaTorneos } from "@/lib/torneo";
 
 export default function JuegosPage() {
@@ -49,6 +50,7 @@ async function Contenido() {
     { data: perfs },
     { data: activas },
     { data: posTorneos },
+    { data: torneos },
   ] = await Promise.all([
     supabase
       .from("juegos")
@@ -68,6 +70,11 @@ async function Contenido() {
       .eq("estado", "activa")
       .limit(1),
     supabase.from("torneo_posiciones").select("perfil_id, puesto, puntos"),
+    supabase
+      .from("torneos")
+      .select("id, juego, creado_en, cargado_por, torneo_posiciones(perfil_id, puesto)")
+      .order("creado_en", { ascending: false })
+      .limit(10),
   ]);
   const catalogo = (juegos as Juego[]) ?? [];
   const tablaJ = tablaTorneos(posTorneos ?? []);
@@ -137,6 +144,13 @@ async function Contenido() {
           campeonPuntos={tablaJ[0] ?? null}
         />
       </section>
+
+      <ListaTorneos
+        torneos={(torneos as TorneoLista[]) ?? []}
+        apodos={apodos}
+        uid={uid ?? ""}
+        esAdmin={esAdmin}
+      />
 
       {lista.length > 0 && (
         <section className="flex flex-col gap-2">
