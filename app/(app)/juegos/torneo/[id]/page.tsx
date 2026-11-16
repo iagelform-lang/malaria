@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { usuarioActual } from "@/lib/sesion";
-import { CargarPuestos } from "@/components/juegos/CargarPuestos";
+import { ModoJuego } from "@/components/juegos/ModoJuego";
 
 // Cargar el resultado de un juego que no se juega en el celular: se marcan los puestos y suman puntos.
 export default function TorneoJuegoPage({ params }: PageProps<"/juegos/torneo/[id]">) {
@@ -43,7 +43,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
       <p className="-mt-2 text-xs text-texto-suave">
         {activa ? `Queda cargado en ${activa.nombre}.` : "Se guarda como torneo suelto."}
       </p>
-      <CargarPuestos
+      <ModoJuego
         juego={juego.nombre}
         juntadaId={activa?.id ?? null}
         perfiles={[...(perfiles ?? [])].sort((a, b) => Number(vinieron.has(b.id)) - Number(vinieron.has(a.id)))}

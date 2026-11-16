@@ -8,6 +8,7 @@ import { normalizarEstadistica } from "@/lib/numeros";
 import { emojiJuego, nivelDe, rankingJuegos, rankingPuntos, type Juego, type JugadorR, type PartidaR } from "@/lib/juegos";
 import { fechaCorta } from "@/lib/tiempo";
 import { tablaTorneos } from "@/lib/torneo";
+import { caraACara, esDuelo, type DueloLista } from "@/lib/duelos";
 import type { Estadistica } from "@/lib/tipos";
 import { CopiarAlias } from "@/components/juntada/CopiarAlias";
 
@@ -48,7 +49,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
     supabase.from("asistencias").select("juntada_id, perfil_id"),
     supabase.from("fechas_especiales").select("id, puntos"),
     supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
-    supabase.from("partidas").select("id, juego, partida_jugadores(perfil_id, gano)"),
+    supabase.from("partidas").select("id, juego, resultado, torneo_id, partida_jugadores(perfil_id, gano)"),
     supabase.from("juegos").select("nombre, emoji"),
     supabase.from("torneo_posiciones").select("perfil_id, puesto, puntos"),
     supabase
@@ -104,6 +105,11 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   const historial = (jFin ?? [])
     .filter((j) => susJuntadas.has(j.id))
     .sort((a, b) => b.inicio_programado.localeCompare(a.inicio_programado));
+
+  // duelos 1 vs 1: récord contra cada rival
+  const susDuelos = caraACara(
+    (lista as DueloLista[]).filter((d) => esDuelo(d) && d.partida_jugadores.some((j) => j.perfil_id === id)),
+  ).map((p) => (p.a === id ? { rival: p.b, gano: p.ganA, perdio: p.ganB } : { rival: p.a, gano: p.ganB, perdio: p.ganA }));
 
   const susFrases = ((frases ?? []) as { id: number; texto: string; frase_votos: unknown[] }[]).sort(
     (a, b) => b.frase_votos.length - a.frase_votos.length,
@@ -183,6 +189,21 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
                   </span>
                 </span>
               </div>
+            ))}
+          </div>
+        </Bloque>
+      )}
+
+      {susDuelos.length > 0 && (
+        <Bloque titulo="Duelos 1 vs 1">
+          <div className="flex flex-col gap-1 text-sm">
+            {susDuelos.map((d) => (
+              <Link key={d.rival} href={`/persona/${d.rival}`} className="flex justify-between rounded-xl bg-superficie px-3 py-2">
+                <span>vs {apodos[d.rival] ?? "?"}</span>
+                <b className={d.gano > d.perdio ? "text-acento" : d.gano < d.perdio ? "text-red-400" : ""}>
+                  {d.gano} - {d.perdio}
+                </b>
+              </Link>
             ))}
           </div>
         </Bloque>

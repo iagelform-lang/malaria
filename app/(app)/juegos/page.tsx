@@ -3,7 +3,6 @@ import Link from "next/link";
 import { ChevronRight, Dices } from "lucide-react";
 import { usuarioActual } from "@/lib/sesion";
 import {
-  emojiJuego,
   rankingJuegos,
   type Juego,
   type JugadorR,
@@ -12,6 +11,8 @@ import {
 import { CatalogoJuegos } from "@/components/juegos/CatalogoJuegos";
 import { SeccionJuegos } from "@/components/stats/SeccionJuegos";
 import { TablaJuegos } from "@/components/stats/TablaJuegos";
+import { SeccionDuelos } from "@/components/juegos/SeccionDuelos";
+import { esDuelo } from "@/lib/duelos";
 import { ListaTorneos, type TorneoLista } from "@/components/juegos/ListaTorneos";
 import { tablaTorneos } from "@/lib/torneo";
 
@@ -38,6 +39,8 @@ type PartidaLista = {
   juego: string;
   resultado: string | null;
   juntada_id: string | null;
+  torneo_id: number | null;
+  cargado_por: string;
   juntadas: { nombre: string } | null;
   partida_jugadores: { perfil_id: string; gano: boolean }[];
 };
@@ -61,7 +64,7 @@ async function Contenido() {
     supabase
       .from("partidas")
       .select(
-        "id, juego, resultado, juntada_id, juntadas(nombre), partida_jugadores(perfil_id, gano)",
+        "id, juego, resultado, juntada_id, torneo_id, cargado_por, juntadas(nombre), partida_jugadores(perfil_id, gano)",
       )
       .order("creado_en", { ascending: false }),
     supabase.from("perfiles").select("id, apodo"),
@@ -155,47 +158,13 @@ async function Contenido() {
         esAdmin={esAdmin}
       />
 
-      {lista.length > 0 && (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">
-            Últimas partidas
-          </h2>
-          {lista.slice(0, 10).map((p) => (
-            <Link
-              key={p.id}
-              href={p.juntada_id ? `/juntada/${p.juntada_id}` : "/juegos"}
-              className="flex items-start gap-3 rounded-xl bg-superficie px-3 py-2.5"
-            >
-              <span className="text-2xl leading-none">
-                {emojiJuego(p.juego, catalogo)}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold">
-                  {p.juego}
-                  {p.resultado && (
-                    <span className="font-normal text-texto-suave">
-                      {" "}
-                      · {p.resultado}
-                    </span>
-                  )}
-                </p>
-                <p className="text-sm">
-                  🏆{" "}
-                  <b>
-                    {p.partida_jugadores
-                      .filter((j) => j.gano)
-                      .map((j) => apodos[j.perfil_id] ?? "?")
-                      .join(", ") || "—"}
-                  </b>
-                </p>
-                <p className="truncate text-xs text-texto-suave">
-                  {p.juntadas?.nombre ? `en ${p.juntadas.nombre}` : "fuera de juntada"}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </section>
-      )}
+      <SeccionDuelos
+        duelos={lista.filter(esDuelo)}
+        apodos={apodos}
+        catalogo={catalogo}
+        uid={uid ?? ""}
+        esAdmin={esAdmin}
+      />
     </div>
   );
 }
