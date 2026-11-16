@@ -34,7 +34,7 @@ type PartidaLista = {
   id: number;
   juego: string;
   resultado: string | null;
-  juntada_id: string;
+  juntada_id: string | null;
   juntadas: { nombre: string } | null;
   partida_jugadores: { perfil_id: string; gano: boolean }[];
 };
@@ -101,6 +101,18 @@ async function Contenido() {
         </p>
       )}
 
+      <Link
+        href="/juegos/bid"
+        className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-acento/25 to-amber-300/20 p-4 ring-1 ring-acento/40 active:scale-[0.99]"
+      >
+        <span className="text-3xl">🔨</span>
+        <div className="min-w-0 flex-1">
+          <p className="font-bold">Jugar Bid Womens</p>
+          <p className="text-sm text-texto-suave">Subasta, duelos al mejor de 3 y torneo</p>
+        </div>
+        <ChevronRight className="size-5 text-acento" />
+      </Link>
+
       <CatalogoJuegos
         juegos={catalogo.map((j) => ({ ...j, partidas: cuantas(j.nombre) }))}
         uid={uid ?? ""}
@@ -127,7 +139,7 @@ async function Contenido() {
           {lista.slice(0, 10).map((p) => (
             <Link
               key={p.id}
-              href={`/juntada/${p.juntada_id}`}
+              href={p.juntada_id ? `/juntada/${p.juntada_id}` : "/juegos"}
               className="flex items-start gap-3 rounded-xl bg-superficie px-3 py-2.5"
             >
               <span className="text-2xl leading-none">
@@ -153,7 +165,7 @@ async function Contenido() {
                   </b>
                 </p>
                 <p className="truncate text-xs text-texto-suave">
-                  en {p.juntadas?.nombre ?? "?"}
+                  {p.juntadas?.nombre ? `en ${p.juntadas.nombre}` : "fuera de juntada"}
                 </p>
               </div>
             </Link>

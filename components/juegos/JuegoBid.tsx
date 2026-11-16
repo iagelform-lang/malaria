@@ -41,7 +41,13 @@ function proximoDuelo(ganadores: string[], perdedores: string[]): Duelo | null {
   return null;
 }
 
-export function JuegoBid({ juntadaId, perfiles }: { juntadaId: string; perfiles: { id: string; apodo: string }[] }) {
+export function JuegoBid({
+  juntadaId,
+  perfiles,
+}: {
+  juntadaId: string | null;
+  perfiles: { id: string; apodo: string }[];
+}) {
   const supabase = useMemo(() => crearClienteNavegador(), []);
   const apodo = (id: string) => perfiles.find((p) => p.id === id)?.apodo ?? "?";
 
