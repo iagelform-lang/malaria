@@ -39,6 +39,8 @@ import { SeccionLlevar } from "@/components/juntada/SeccionLlevar";
 import { SeccionFotos } from "@/components/juntada/SeccionFotos";
 import { SeccionJuegos } from "@/components/juntada/SeccionJuegos";
 import { SeccionFrases } from "@/components/juntada/SeccionFrases";
+import { Solapas } from "@/components/ui/Solapas";
+import { HistorialPuntos } from "@/components/juntada/HistorialPuntos";
 
 type Props = {
   juntadaInicial: Juntada;
@@ -219,6 +221,44 @@ export function VistaJuntada({
     window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
   }
 
+  // ---------- Secciones de durante / después ----------
+  const juegos = (
+    <SeccionJuegos
+      juntadaId={id}
+      uid={uid}
+      puedeGestionar={puedeGestionar}
+      perfiles={perfiles}
+      idsQueVinieron={[...idsQueVinieron]}
+      enCurso={juntada.estado === "activa"}
+    />
+  );
+  const frases = (
+    <SeccionFrases
+      juntadaId={id}
+      uid={uid}
+      puedeGestionar={puedeGestionar}
+      perfiles={perfiles}
+      puedeCargar
+    />
+  );
+  const fotos = (
+    <SeccionFotos
+      juntadaId={id}
+      uid={uid}
+      puedeGestionar={puedeGestionar}
+      puedeSubir
+    />
+  );
+  const gastos = (
+    <SeccionConsumos
+      juntadaId={id}
+      uid={uid}
+      puedeGestionar={puedeGestionar}
+      perfiles={perfiles}
+      idsQueVinieron={[...idsQueVinieron]}
+    />
+  );
+
   return (
     <div className="flex flex-col gap-6 pt-2">
       {/* Encabezado */}
@@ -255,6 +295,11 @@ export function VistaJuntada({
             pts
           </span>
         </div>
+        <HistorialPuntos
+          key={juntada.puntos ?? 10}
+          juntadaId={id}
+          perfiles={perfiles}
+        />
         <h1 className="text-3xl font-bold leading-tight">{juntada.nombre}</h1>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-texto-suave">
           <span className="flex items-center gap-1">
@@ -553,7 +598,8 @@ export function VistaJuntada({
         </Seccion>
       )}
 
-      {juntada.estado !== "cancelada" && (
+      {/* Antes: solo lo que hay que organizar */}
+      {juntada.estado === "propuesta" && (
         <SeccionLlevar
           juntadaId={id}
           uid={uid}
@@ -563,37 +609,46 @@ export function VistaJuntada({
         />
       )}
 
+      {/* Durante y después: una cosa por vez */}
       {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
-        <SeccionFotos
-          juntadaId={id}
-          uid={uid}
-          puedeGestionar={puedeGestionar}
-          puedeSubir
-        />
-      )}
-
-      {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
-        <SeccionJuegos
-          juntadaId={id}
-          uid={uid}
-          puedeGestionar={puedeGestionar}
-          perfiles={perfiles}
-          idsQueVinieron={[...idsQueVinieron]}
-          enCurso={juntada.estado === "activa"}
-        />
-      )}
-
-      {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
-        <SeccionFrases juntadaId={id} uid={uid} puedeGestionar={puedeGestionar} perfiles={perfiles} puedeCargar />
-      )}
-
-      {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
-        <SeccionConsumos
-          juntadaId={id}
-          uid={uid}
-          puedeGestionar={puedeGestionar}
-          perfiles={perfiles}
-          idsQueVinieron={[...idsQueVinieron]}
+        <Solapas
+          key={juntada.estado}
+          solapas={[
+            ...(juntada.estado === "activa"
+              ? [
+                  {
+                    clave: "juegos",
+                    titulo: "🎮 Juegos",
+                    contenido: juegos,
+                  },
+                  { clave: "frases", titulo: "💬 Frases", contenido: frases },
+                  { clave: "fotos", titulo: "📸 Fotos", contenido: fotos },
+                  { clave: "gastos", titulo: "💸 Gastos", contenido: gastos },
+                  {
+                    clave: "llevar",
+                    titulo: "🧺 Qué llevar",
+                    contenido: (
+                      <SeccionLlevar
+                        juntadaId={id}
+                        uid={uid}
+                        puedeGestionar={puedeGestionar}
+                        perfiles={perfiles}
+                        abierta={abierta}
+                      />
+                    ),
+                  },
+                ]
+              : [
+                  { clave: "fotos", titulo: "📸 Fotos", contenido: fotos },
+                  { clave: "frases", titulo: "💬 Frases", contenido: frases },
+                  { clave: "gastos", titulo: "💸 Gastos", contenido: gastos },
+                  {
+                    clave: "juegos",
+                    titulo: "🎮 Juegos",
+                    contenido: juegos,
+                  },
+                ]),
+          ]}
         />
       )}
 

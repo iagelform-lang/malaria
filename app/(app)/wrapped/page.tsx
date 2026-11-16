@@ -51,7 +51,10 @@ async function Contenido({
   const anio =
     Number.isInteger(pedido) && pedido > 2000 && pedido <= anioActual
       ? pedido
-      : anioActual;
+      : // en enero el año nuevo todavía está vacío: mostramos el que terminó
+        hoyBA.slice(5, 7) === "01"
+        ? anioActual - 1
+        : anioActual;
 
   const [
     { data: js },
