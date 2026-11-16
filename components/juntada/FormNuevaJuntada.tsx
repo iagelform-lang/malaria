@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Loader2, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { CampoComida } from "@/components/juntada/CampoComida";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { aInputLocal, desdeInputLocal } from "@/lib/tiempo";
 
@@ -19,28 +20,10 @@ export function FormNuevaJuntada() {
   const [nombre, setNombre] = useState("");
   const [lugar, setLugar] = useState("");
   const [comida, setComida] = useState("");
-  const [anteriores, setAnteriores] = useState<string[]>([]);
   const [inicio, setInicio] = useState(proximaHoraRedonda);
   const [tolerancia, setTolerancia] = useState(15);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // lo que ya comimos otras veces, de lo más repetido a lo menos
-  useEffect(() => {
-    crearClienteNavegador()
-      .from("juntadas")
-      .select("comida")
-      .not("comida", "is", null)
-      .then(({ data }) => {
-        const cuenta = new Map<string, { texto: string; n: number }>();
-        for (const { comida: c } of data ?? []) {
-          const clave = c.trim().toLowerCase();
-          const prev = cuenta.get(clave);
-          cuenta.set(clave, { texto: prev?.texto ?? c.trim(), n: (prev?.n ?? 0) + 1 });
-        }
-        setAnteriores([...cuenta.values()].sort((a, b) => b.n - a.n).slice(0, 8).map((x) => x.texto));
-      });
-  }, []);
 
   async function proponer(e: React.FormEvent) {
     e.preventDefault();
@@ -109,38 +92,7 @@ export function FormNuevaJuntada() {
             className={estiloInput}
           />
         </Campo>
-        <div className="flex flex-col gap-2">
-          <label className="flex flex-col gap-2">
-            <span className="flex items-center gap-1.5 text-sm text-texto-suave">
-              <UtensilsCrossed className="size-4" /> Comida (opcional)
-            </span>
-            <input
-              maxLength={60}
-              placeholder="Asado, pizza, sushi…"
-              value={comida}
-              onChange={(e) => setComida(e.target.value)}
-              className={estiloInput}
-            />
-          </label>
-          {anteriores.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {anteriores.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setComida(c)}
-                  className={`rounded-full px-3 py-1 text-sm ${
-                    comida.trim().toLowerCase() === c.toLowerCase()
-                      ? "bg-acento font-semibold text-black"
-                      : "bg-superficie text-texto-suave"
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <CampoComida valor={comida} cambiar={setComida} claseInput={estiloInput} />
         <Campo etiqueta="¿Cuándo arranca?">
           <input
             required

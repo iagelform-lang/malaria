@@ -13,6 +13,7 @@ const MENSAJES: Record<string, string> = {
   NO_A_SI_MISMO: "No te podés desactivar a vos mismo.",
   TODAVIA_NO: "Todavía no es la hora: arranca sola a la hora programada.",
   JUNTADA_INEXISTENTE: "Esa juntada ya no existe.",
+  JUNTADA_CERRADA: "Esa juntada ya no se puede cambiar así.",
   PERFIL_INEXISTENTE: "No encontramos a esa persona.",
 };
 

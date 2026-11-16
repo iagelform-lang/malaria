@@ -12,6 +12,7 @@ import {
   Flag,
   Loader2,
   MapPin,
+  Pencil,
   Play,
   ScanLine,
   Share2,
@@ -25,6 +26,7 @@ import { mensajeError } from "@/lib/errores";
 import type { Asistencia, Confirmacion, Juntada, Perfil } from "@/lib/tipos";
 import { Avatar } from "@/components/ui/Avatar";
 import { SeccionConsumos } from "@/components/juntada/SeccionConsumos";
+import { EditarJuntada } from "@/components/juntada/EditarJuntada";
 
 type Props = {
   juntadaInicial: Juntada;
@@ -62,6 +64,7 @@ export function VistaJuntada({
   const [confirmaciones, setConfirmaciones] = useState(confirmacionesIniciales);
   const [aviso, setAviso] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
+  const [editando, setEditando] = useState(false);
 
   const id = juntada.id;
   const apodos = useMemo(() => new Map(perfiles.map((p) => [p.id, p])), [perfiles]);
@@ -169,12 +172,22 @@ export function VistaJuntada({
           <Link href="/" className="-ml-2 rounded-full p-2 text-texto-suave">
             <ArrowLeft className="size-5" />
           </Link>
-          <button
-            onClick={compartir}
-            className="flex items-center gap-1.5 rounded-full bg-[#25D366]/15 px-3 py-1.5 text-sm text-[#25D366]"
-          >
-            <Share2 className="size-4" /> WhatsApp
-          </button>
+          <div className="flex items-center gap-2">
+            {puedeGestionar && juntada.estado !== "cancelada" && !editando && (
+              <button
+                onClick={() => setEditando(true)}
+                className="flex items-center gap-1.5 rounded-full bg-superficie px-3 py-1.5 text-sm text-texto-suave ring-1 ring-borde"
+              >
+                <Pencil className="size-4" /> Editar
+              </button>
+            )}
+            <button
+              onClick={compartir}
+              className="flex items-center gap-1.5 rounded-full bg-[#25D366]/15 px-3 py-1.5 text-sm text-[#25D366]"
+            >
+              <Share2 className="size-4" /> WhatsApp
+            </button>
+          </div>
         </div>
         <span className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-medium ${estado.clase}`}>{estado.texto}</span>
         <h1 className="text-3xl font-bold leading-tight">{juntada.nombre}</h1>
@@ -197,6 +210,19 @@ export function VistaJuntada({
           </span>
         </div>
       </div>
+
+      {editando && (
+        <EditarJuntada
+          juntada={juntada}
+          cerrar={() => setEditando(false)}
+          guardado={async () => {
+            setEditando(false);
+            setAviso("Cambios guardados.");
+            await recargar();
+            router.refresh();
+          }}
+        />
+      )}
 
       {aviso && (
         <div className="flex items-start justify-between gap-2 rounded-xl border border-borde bg-superficie p-3 text-sm">
