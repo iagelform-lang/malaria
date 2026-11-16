@@ -282,13 +282,15 @@ export function JuegoBid({
       {fase === "nombres" && (
         <div className="flex flex-col gap-3">
           <p className="text-sm text-texto-suave">
-            Los que no juegan cargan {NOMBRES} nombres (sin que vean {apodo(duelo.a)} ni {apodo(duelo.b)}).
+            Los que no juegan cargan {NOMBRES} nombres (que no miren {apodo(duelo.a)} ni {apodo(duelo.b)}).
           </p>
           {nombres.map((n, i) => (
             <input
               key={i}
-              type="password"
+              type="text"
               autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
               maxLength={40}
               placeholder={`Nombre ${i + 1}`}
               value={n}
