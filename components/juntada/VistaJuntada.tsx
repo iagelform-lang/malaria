@@ -15,6 +15,7 @@ import {
   Play,
   ScanLine,
   Share2,
+  UtensilsCrossed,
   X,
 } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
@@ -156,7 +157,7 @@ export function VistaJuntada({
         ? `🔥 Ya arrancó: ${juntada.nombre}${juntada.lugar ? ` en ${juntada.lugar}` : ""}. Mirá quién está: ${url}`
         : `📅 ${juntada.nombre} — ${fechaYHora(juntada.inicio_programado)}${
             juntada.lugar ? ` en ${juntada.lugar}` : ""
-          }. Decí a qué hora llegás: ${url}`;
+          }${juntada.comida ? `. Se come: ${juntada.comida}` : ""}. Decí a qué hora llegás: ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
   }
 
@@ -184,6 +185,11 @@ export function VistaJuntada({
           {juntada.lugar && (
             <span className="flex items-center gap-1">
               <MapPin className="size-4" /> {juntada.lugar}
+            </span>
+          )}
+          {juntada.comida && (
+            <span className="flex items-center gap-1">
+              <UtensilsCrossed className="size-4" /> {juntada.comida}
             </span>
           )}
           <span className="flex items-center gap-1">

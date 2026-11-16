@@ -12,6 +12,7 @@ export type Juntada = {
   id: string;
   nombre: string;
   lugar: string | null;
+  comida?: string | null;
   inicio_programado: string;
   tolerancia_min: number;
   estado: EstadoJuntada;

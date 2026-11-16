@@ -167,7 +167,10 @@ function FilaJuntada({ j, detalle, apagada }: { j: Juntada; detalle: string; apa
         <p className="flex items-center gap-1 text-sm text-texto-suave">
           <Clock className="size-3.5" /> {fechaYHora(j.inicio_programado)}
         </p>
-        <p className="text-xs text-texto-suave">{detalle}</p>
+        <p className="text-xs text-texto-suave">
+          {j.comida && <>🍽️ {j.comida} · </>}
+          {detalle}
+        </p>
       </div>
       <ChevronRight className="size-5 text-texto-suave" />
     </Link>

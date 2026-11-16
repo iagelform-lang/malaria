@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, Crown, MapPin } from "lucide-react";
+import { ArrowLeft, Clock, Crown, MapPin, UtensilsCrossed } from "lucide-react";
 import { usuarioActual } from "@/lib/sesion";
 import { duracion, fechaYHora, hora } from "@/lib/tiempo";
 import { calcularCuentas, pesos } from "@/lib/cuentas";
@@ -110,6 +110,11 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
           {juntada.lugar && (
             <span className="flex items-center gap-1">
               <MapPin className="size-4" /> {juntada.lugar}
+            </span>
+          )}
+          {juntada.comida && (
+            <span className="flex items-center gap-1">
+              <UtensilsCrossed className="size-4" /> {juntada.comida}
             </span>
           )}
           <span className="flex items-center gap-1">
