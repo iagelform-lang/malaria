@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, Trash2, X } from "lucide-react";
+import { ChevronRight, Loader2, Plus, Trash2, X } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { mensajeError } from "@/lib/errores";
 import { EMOJIS_JUEGO, type Juego, type Modo } from "@/lib/juegos";
@@ -133,27 +133,28 @@ export function CatalogoJuegos({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex flex-col gap-2">
         {juegos.map((j) => {
-          const puedeBorrar =
-            esAdmin || (!j.predeterminado && j.creado_por === uid);
+          const puedeBorrar = esAdmin || (!j.predeterminado && j.creado_por === uid);
+          const esBid = j.nombre.toLowerCase() === "bid womens";
           return (
             <div
               key={j.id}
-              className="flex items-center gap-2 rounded-2xl bg-superficie p-3"
+              className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-acento/25 to-amber-300/20 p-4 ring-1 ring-acento/40"
             >
               <Link
-                href={j.nombre.toLowerCase() === "bid womens" ? "/juegos/bid" : `/juegos/torneo/${j.id}`}
-                className="flex min-w-0 flex-1 items-center gap-2"
+                href={esBid ? "/juegos/bid" : `/juegos/torneo/${j.id}`}
+                className="flex min-w-0 flex-1 items-center gap-3 active:scale-[0.99]"
               >
-                <span className="text-2xl">{j.emoji}</span>
+                <span className="text-3xl">{j.emoji}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{j.nombre}</p>
-                  <p className="text-xs text-texto-suave">
-                    {j.partidas} {j.partidas === 1 ? "torneo" : "torneos"} ·{" "}
-                    <span className="font-semibold text-acento">Jugar ›</span>
+                  <p className="truncate font-bold">Jugar {j.nombre}</p>
+                  <p className="text-sm text-texto-suave">
+                    {esBid ? "Subasta, duelos al mejor de 5 y torneo" : "Torneo con puestos o duelo 1 vs 1"}
+                    {j.partidas > 0 && ` · ${j.partidas} ${j.partidas === 1 ? "torneo" : "torneos"}`}
                   </p>
                 </div>
+                <ChevronRight className="size-5 shrink-0 text-acento" />
               </Link>
               {puedeBorrar && j.partidas === 0 && (
                 <button
@@ -162,11 +163,7 @@ export function CatalogoJuegos({
                   className="p-1 text-texto-suave"
                   aria-label={`Borrar ${j.nombre}`}
                 >
-                  {ocupado === j.id ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="size-4" />
-                  )}
+                  {ocupado === j.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
                 </button>
               )}
             </div>

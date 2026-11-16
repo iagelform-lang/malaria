@@ -119,18 +119,6 @@ async function Contenido() {
         </p>
       )}
 
-      <Link
-        href="/juegos/bid"
-        className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-acento/25 to-amber-300/20 p-4 ring-1 ring-acento/40 active:scale-[0.99]"
-      >
-        <span className="text-3xl">🔨</span>
-        <div className="min-w-0 flex-1">
-          <p className="font-bold">Jugar Bid Womens</p>
-          <p className="text-sm text-texto-suave">Subasta, duelos al mejor de 5 y torneo</p>
-        </div>
-        <ChevronRight className="size-5 text-acento" />
-      </Link>
-
       <CatalogoJuegos
         juegos={catalogo.map((j) => ({ ...j, partidas: cuantas(j.nombre) }))}
         uid={uid ?? ""}
