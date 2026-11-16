@@ -112,12 +112,7 @@ async function Contenido() {
           </div>
           <ChevronRight className="size-5 text-acento" />
         </Link>
-      ) : (
-        <p className="rounded-2xl border border-dashed border-borde p-4 text-center text-sm text-texto-suave">
-          Las partidas se cargan durante o después de una juntada, en su sección{" "}
-          <b>Juegos</b>.
-        </p>
-      )}
+      ) : null}
 
       <CatalogoJuegos
         juegos={catalogo.map((j) => ({ ...j, partidas: cuantas(j.nombre) }))}
