@@ -6,12 +6,9 @@ import { calcularInsignias } from "@/lib/insignias";
 import type { Estadistica } from "@/lib/tipos";
 import { TablaRanking } from "@/components/stats/TablaRanking";
 import { SeccionGastos } from "@/components/stats/SeccionGastos";
-import { SeccionJuegos } from "@/components/stats/SeccionJuegos";
+import { Solapas } from "@/components/ui/Solapas";
 import {
-  rankingJuegos,
   rankingPuntos,
-  type JugadorR,
-  type PartidaR,
 } from "@/lib/juegos";
 import { RankingPuntos } from "@/components/stats/RankingPuntos";
 import { TablaJuegos } from "@/components/stats/TablaJuegos";
@@ -58,7 +55,6 @@ async function Contenido() {
     { data: cons },
     { data: perfs },
     { data: parts },
-    { data: jugs },
     { data: eventos },
     { data: voyEv },
     { data: posTorneos },
@@ -75,7 +71,6 @@ async function Contenido() {
       .select("juntada_id, tipo, descripcion, monto, pagado_por"),
     supabase.from("perfiles").select("id, apodo, activo, oculto"),
     supabase.from("partidas").select("id, juego"),
-    supabase.from("partida_jugadores").select("partida_id, perfil_id, gano"),
     supabase.from("fechas_especiales").select("id, puntos"),
     supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
     supabase.from("torneo_posiciones").select("perfil_id, puesto, puntos"),
@@ -96,7 +91,7 @@ async function Contenido() {
   const horasGrupo = stats.reduce((s, x) => s + aNumero(x.horas_totales), 0);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       {finalizadas === 0 && (
         <p className="-mb-4 text-xs text-texto-suave">
           Todo arranca en 0: se va llenando cuando termine la primera juntada.
@@ -110,6 +105,13 @@ async function Contenido() {
         />
       </div>
 
+      <Solapas
+        solapas={[
+          {
+            clave: "puntos",
+            titulo: "Puntos",
+            contenido: (
+              <>
       <RankingPuntos
         todos={(perfs ?? []).filter((p) => p.activo && !p.oculto).map((p) => p.id)}
         filas={rankingPuntos(
@@ -122,7 +124,23 @@ async function Contenido() {
         apodos={apodos}
         uid={uid ?? ""}
       />
-
+              </>
+            ),
+          },
+          {
+            clave: "asistencia",
+            titulo: "Asistencia",
+            contenido: (
+              <>
+      <TablaRanking stats={stats} uid={uid ?? ""} />
+              </>
+            ),
+          },
+          {
+            clave: "insignias",
+            titulo: "Insignias",
+            contenido: (
+              <>
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">
           Insignias
@@ -163,7 +181,14 @@ async function Contenido() {
           ))}
         </div>
       </section>
-
+              </>
+            ),
+          },
+          {
+            clave: "gastos",
+            titulo: "Gastos",
+            contenido: (
+              <>
       <SeccionGastos
         juntadas={jFin ?? []}
         asistencias={(asis ?? []).filter((a) => idsFin.has(a.juntada_id))}
@@ -177,21 +202,48 @@ async function Contenido() {
         apodos={apodos}
         uid={uid ?? ""}
       />
-
-      <SeccionJuegos
-        {...rankingJuegos(
-          (parts as PartidaR[]) ?? [],
-          (jugs as JugadorR[]) ?? [],
-        )}
+              </>
+            ),
+          },
+          {
+            clave: "juegos",
+            titulo: "Juegos",
+            contenido: (
+              <>
+      <SeccionJuegosResumen
+        partidas={(parts ?? []).length}
+        campeon={tablaTorneos((posTorneos ?? []).filter((p) => !ocultos.has(p.perfil_id)))[0] ?? null}
         apodos={apodos}
-        campeonPuntos={tablaTorneos((posTorneos ?? []).filter((p) => !ocultos.has(p.perfil_id)))[0] ?? null}
       />
       <TablaJuegos
         filas={tablaTorneos((posTorneos ?? []).filter((p) => !ocultos.has(p.perfil_id)))}
         apodos={apodos}
       />
+              </>
+            ),
+          },
+        ]}
+      />
+    </div>
+  );
+}
 
-      <TablaRanking stats={stats} uid={uid ?? ""} />
+function SeccionJuegosResumen({
+  partidas,
+  campeon,
+  apodos,
+}: {
+  partidas: number;
+  campeon: { perfil_id: string; puntos: number } | null;
+  apodos: Record<string, string>;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      <Dato valor={String(partidas)} etiqueta="duelos jugados" />
+      <div className="rounded-2xl bg-superficie p-4">
+        <p className="truncate text-2xl font-bold">{campeon ? (apodos[campeon.perfil_id] ?? "?") : "Nadie todavía"}</p>
+        <p className="text-sm text-texto-suave">👑 campeón de los juegos · {campeon ? campeon.puntos : 0} pts</p>
+      </div>
     </div>
   );
 }

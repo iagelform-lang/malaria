@@ -5,7 +5,7 @@ import { ArrowLeft, Quote } from "lucide-react";
 import { usuarioActual } from "@/lib/sesion";
 import { calcularInsignias } from "@/lib/insignias";
 import { normalizarEstadistica } from "@/lib/numeros";
-import { emojiJuego, nivelDe, rankingJuegos, rankingPuntos, type Juego, type JugadorR, type PartidaR } from "@/lib/juegos";
+import { nivelDe, rankingJuegos, rankingPuntos, type JugadorR, type PartidaR } from "@/lib/juegos";
 import { fechaCorta } from "@/lib/tiempo";
 import { tablaTorneos } from "@/lib/torneo";
 import { caraACara, esDuelo, type DueloLista } from "@/lib/duelos";
@@ -38,7 +38,6 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
     { data: eventos },
     { data: voyEv },
     { data: partidas },
-    { data: catalogo },
     { data: posT },
     { data: frases },
   ] = await Promise.all([
@@ -50,7 +49,6 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
     supabase.from("fechas_especiales").select("id, puntos"),
     supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
     supabase.from("partidas").select("id, juego, resultado, torneo_id, partida_jugadores(perfil_id, gano)"),
-    supabase.from("juegos").select("nombre, emoji"),
     supabase.from("torneo_posiciones").select("perfil_id, puesto, puntos"),
     supabase
       .from("frases")
@@ -84,9 +82,6 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   const jugadores = lista.flatMap((p) => p.partida_jugadores.map((j) => ({ ...j, partida_id: p.id }))) as JugadorR[];
   const rj = rankingJuegos(lista as PartidaR[], jugadores);
   const totalJuegos = rj.total.find((r) => r.perfil_id === id);
-  const porJuego = rj.porJuego
-    .map((j) => ({ juego: j.juego, fila: j.ranking.find((r) => r.perfil_id === id) }))
-    .filter((x) => x.fila);
 
   // con quién coincide más
   const susJuntadas = new Set(asisFin.filter((a) => a.perfil_id === id).map((a) => a.juntada_id));
@@ -173,26 +168,6 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
           <p className="text-sm text-texto-suave">Todavía no coincidió con nadie</p>
         )}
       </Bloque>
-
-      {porJuego.length > 0 && (
-        <Bloque titulo="Juegos">
-          <div className="flex flex-col gap-1 text-sm">
-            {porJuego.map(({ juego, fila }) => (
-              <div key={juego} className="flex items-center justify-between rounded-xl bg-superficie px-3 py-2">
-                <span>
-                  {emojiJuego(juego, (catalogo as Pick<Juego, "nombre" | "emoji">[]) ?? [])} {juego}
-                </span>
-                <span>
-                  <b>{fila!.ganadas}</b>
-                  <span className="text-texto-suave">
-                    /{fila!.jugadas} · {fila!.pct}%
-                  </span>
-                </span>
-              </div>
-            ))}
-          </div>
-        </Bloque>
-      )}
 
       {susDuelos.length > 0 && (
         <Bloque titulo="Duelos 1 vs 1">

@@ -6,6 +6,7 @@ import { usuarioActual } from "@/lib/sesion";
 import { duracion, fechaYHora, hora } from "@/lib/tiempo";
 import { calcularCuentas, pesos } from "@/lib/cuentas";
 import { CopiarAlias } from "@/components/juntada/CopiarAlias";
+import { CompartirResumen } from "@/components/juntada/CompartirResumen";
 import { SeccionFotos } from "@/components/juntada/SeccionFotos";
 import { SeccionFrases } from "@/components/juntada/SeccionFrases";
 import { TIPOS } from "@/lib/consumos";
@@ -39,8 +40,17 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase, uid } = await usuarioActual();
 
-  const [{ data: j }, { data: perfs }, { data: asis }, { data: conf }, { data: cons }, { data: excl }, { data: pags }] =
-    await Promise.all([
+  const [
+    { data: j },
+    { data: perfs },
+    { data: asis },
+    { data: conf },
+    { data: cons },
+    { data: excl },
+    { data: pags },
+    { data: frasesJ },
+    { data: torneosJ },
+  ] = await Promise.all([
       supabase.from("juntadas").select("*").eq("id", id).maybeSingle(),
       supabase.from("perfiles").select("id, apodo, alias"),
       supabase.from("asistencias").select("*").eq("juntada_id", id).order("entrada"),
@@ -48,6 +58,8 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
       supabase.from("consumos").select("tipo, descripcion, monto, pagado_por").eq("juntada_id", id).order("creado_en"),
       supabase.from("exclusiones_gasto").select("perfil_id").eq("juntada_id", id),
       supabase.from("pagos").select("de_perfil, a_perfil, monto").eq("juntada_id", id),
+      supabase.from("frases").select("perfil_id, texto, frase_votos(perfil_id)").eq("juntada_id", id),
+      supabase.from("torneos").select("juego, torneo_posiciones(perfil_id, puesto)").eq("juntada_id", id),
     ]);
   if (!j) notFound();
 
@@ -98,6 +110,31 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
     (pags ?? []).map((p) => ({ ...p, monto: Number(p.monto) })),
   );
 
+  // ---- Texto para mandar al grupo ----
+  const fraseTop = ((frasesJ ?? []) as { perfil_id: string; texto: string; frase_votos: unknown[] }[]).sort(
+    (a, b) => b.frase_votos.length - a.frase_votos.length,
+  )[0];
+  const campeones = ((torneosJ ?? []) as { juego: string; torneo_posiciones: { perfil_id: string; puesto: number }[] }[])
+    .map((t) => ({ juego: t.juego, gano: t.torneo_posiciones.find((p) => p.puesto === 1)?.perfil_id }))
+    .filter((t) => t.gano);
+  const tarde = personas.filter((p) => !p.puntual).map((p) => apodo(p.pid));
+  const lineas = [
+    `🦟 *${juntada.nombre}* · resumen`,
+    `${fechaYHora(juntada.inicio_programado)}${juntada.lugar ? ` · ${juntada.lugar}` : ""}`,
+    "",
+    `👥 Fueron ${personas.length}: ${personas.map((p) => apodo(p.pid)).join(", ") || "nadie"}`,
+    primero ? `🚀 Llegó primero: ${apodo(primero.pid)} (${hora(primero.llegada)})` : "",
+    ultimo?.salida ? `💡 Apagó la luz: ${apodo(ultimo.pid)} (${hora(ultimo.salida)})` : "",
+    tarde.length ? `🐢 Llegaron tarde: ${tarde.join(", ")}` : personas.length ? "⏰ Llegaron todos a tiempo" : "",
+    plantaron.length ? `👻 Dijeron que iban y no fueron: ${plantaron.map((c) => apodo(c.perfil_id)).join(", ")}` : "",
+    juntada.comida ? `🍽️ Se comió: ${juntada.comida}` : "",
+    cuentas.total > 0 ? `💸 Se gastó ${pesos(cuentas.total)}` : "",
+    ...campeones.map((c) => `🏆 ${c.juego}: ganó ${apodo(c.gano!)}`),
+    fraseTop ? `💬 Frase de la noche: "${fraseTop.texto}" — ${apodo(fraseTop.perfil_id)}` : "",
+    `⭐ Cada uno sumó ${juntada.puntos ?? 10} puntos`,
+  ].filter((l, i, arr) => l !== "" || (i > 0 && arr[i - 1] !== ""));
+  const textoWhatsApp = lineas.join("\n");
+
   return (
     <div className="flex flex-col gap-6 pt-2">
       <div className="flex flex-col gap-2">
@@ -125,6 +162,8 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
           </span>
         </div>
       </div>
+
+      {juntada.estado === "finalizada" && <CompartirResumen texto={textoWhatsApp} />}
 
       {/* Números grandes */}
       <div className="grid grid-cols-2 gap-3">

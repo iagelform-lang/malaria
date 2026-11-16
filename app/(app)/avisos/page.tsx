@@ -5,6 +5,7 @@ import { usuarioActual } from "@/lib/sesion";
 import { fechaYHora } from "@/lib/tiempo";
 import { ActivarPush } from "@/components/avisos/ActivarPush";
 import { MarcarLeidas } from "@/components/avisos/MarcarLeidas";
+import { ElegirAvisos } from "@/components/avisos/ElegirAvisos";
 
 type Aviso = {
   id: number;
@@ -21,8 +22,11 @@ const ICONO = { creada: CalendarPlus, iniciada: Play, finalizada: Flag, evento: 
 export default function AvisosPage() {
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold">Avisos</h1>
+      <h1 className="pr-12 text-2xl font-bold">Avisos</h1>
       <ActivarPush />
+      <Suspense fallback={null}>
+        <Preferencias />
+      </Suspense>
       <Suspense
         fallback={
           <div className="flex flex-col gap-2">
@@ -36,6 +40,11 @@ export default function AvisosPage() {
       </Suspense>
     </div>
   );
+}
+
+async function Preferencias() {
+  const { uid } = await usuarioActual();
+  return uid ? <ElegirAvisos uid={uid} /> : null;
 }
 
 async function Lista() {

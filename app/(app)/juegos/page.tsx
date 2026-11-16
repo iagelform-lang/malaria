@@ -3,13 +3,9 @@ import Link from "next/link";
 import { ChevronRight, Dices } from "lucide-react";
 import { usuarioActual } from "@/lib/sesion";
 import {
-  rankingJuegos,
   type Juego,
-  type JugadorR,
-  type PartidaR,
 } from "@/lib/juegos";
 import { CatalogoJuegos } from "@/components/juegos/CatalogoJuegos";
-import { SeccionJuegos } from "@/components/stats/SeccionJuegos";
 import { TablaJuegos } from "@/components/stats/TablaJuegos";
 import { SeccionDuelos } from "@/components/juegos/SeccionDuelos";
 import { esDuelo } from "@/lib/duelos";
@@ -85,12 +81,6 @@ async function Contenido() {
   const tablaJ = tablaTorneos(posTorneos ?? []);
   const lista = (partidas as unknown as PartidaLista[]) ?? [];
   const apodos = Object.fromEntries((perfs ?? []).map((p) => [p.id, p.apodo]));
-  const ranking = rankingJuegos(
-    lista as PartidaR[],
-    lista.flatMap((p) =>
-      p.partida_jugadores.map((j) => ({ ...j, partida_id: p.id })),
-    ) as JugadorR[],
-  );
   // cuántos torneos se jugaron de cada juego
   const cuantas = (nombre: string) =>
     (juegosJugados ?? []).filter((t) => t.juego.toLowerCase() === nombre.toLowerCase()).length;
@@ -122,16 +112,9 @@ async function Contenido() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">
-          Rankings
+          Campeón de los juegos
         </h2>
         <TablaJuegos filas={tablaJ} apodos={apodos} />
-        <SeccionJuegos
-          {...ranking}
-          apodos={apodos}
-          catalogo={catalogo}
-          titulo={false}
-          campeonPuntos={tablaJ[0] ?? null}
-        />
       </section>
 
       <ListaTorneos

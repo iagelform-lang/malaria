@@ -11,7 +11,7 @@ import { CartelAvisos } from "@/components/inicio/CartelAvisos";
 export default function InicioPage() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pr-12">
         <h1 className="text-2xl font-bold">Malaria 3.0</h1>
         <Link
           href="/juntada/nueva"
