@@ -7,6 +7,7 @@ import { calcularCuentas, pesos } from "@/lib/cuentas";
 import { mensajeError } from "@/lib/errores";
 import type { Perfil } from "@/lib/tipos";
 import { TIPOS, type TipoConsumo } from "@/lib/consumos";
+import { CopiarAlias } from "@/components/juntada/CopiarAlias";
 export { TIPOS };
 
 type Consumo = {
@@ -234,9 +235,14 @@ export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQ
             <div className="flex flex-col gap-1.5 border-t border-borde pt-3">
               {cuentas.deudas.map((d) => (
                 <div key={`${d.de}-${d.a}`} className="flex items-center gap-2 text-sm">
-                  <p className="flex-1">
-                    <b>{apodo(d.de)}</b> le debe <b>{pesos(d.monto)}</b> a <b>{apodo(d.a)}</b>
-                  </p>
+                  <div className="flex flex-1 flex-col gap-1">
+                    <p>
+                      <b>{apodo(d.de)}</b> le debe <b>{pesos(d.monto)}</b> a <b>{apodo(d.a)}</b>
+                    </p>
+                    {perfiles.find((p) => p.id === d.a)?.alias && (
+                      <CopiarAlias alias={perfiles.find((p) => p.id === d.a)!.alias!} />
+                    )}
+                  </div>
                   {puedeSaldar(d.de, d.a) && (
                     <button
                       disabled={ocupado}

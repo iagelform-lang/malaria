@@ -1,11 +1,12 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { CalendarPlus, ChevronRight, Clock, MapPin, Plus, Radio, Users } from "lucide-react";
+import { CalendarPlus, CalendarRange, ChevronRight, Clock, MapPin, Plus, Radio, Users } from "lucide-react";
 import { fechaYHora } from "@/lib/tiempo";
 import type { Juntada } from "@/lib/tipos";
 import type { FechaEspecial } from "@/lib/fechas";
 import { ProximaFecha, type Voy } from "@/components/fechas/ProximaFecha";
 import { usuarioActual } from "@/lib/sesion";
+import { CartelAvisos } from "@/components/inicio/CartelAvisos";
 
 export default function InicioPage() {
   return (
@@ -45,8 +46,15 @@ async function Listado() {
   const { supabase, uid } = await usuarioActual();
   const campos = "*, confirmaciones(perfil_id, va), asistencias(perfil_id)";
 
-  const [{ data: activas }, { data: propuestas }, { data: pasadas }, { data: fechas }, { data: voy }, { data: perfs }] =
-    await Promise.all([
+  const [
+    { data: activas },
+    { data: propuestas },
+    { data: pasadas },
+    { data: fechas },
+    { data: voy },
+    { data: perfs },
+    { data: sondeos },
+  ] = await Promise.all([
       supabase.from("juntadas").select(campos).eq("estado", "activa").limit(1),
       supabase.from("juntadas").select(campos).eq("estado", "propuesta").order("inicio_programado"),
       supabase
@@ -58,6 +66,11 @@ async function Listado() {
       supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio, lugar, creado_por, duracion_dias"),
       supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
       supabase.from("perfiles").select("id, apodo"),
+      supabase
+        .from("sondeos")
+        .select("id, nombre, sondeo_opciones(id, sondeo_votos(perfil_id))")
+        .eq("estado", "abierto")
+        .order("creado_en", { ascending: false }),
     ]);
 
   const activa = (activas as JuntadaConConteo[] | null)?.[0];
@@ -70,6 +83,7 @@ async function Listado() {
 
   return (
     <div className="flex flex-col gap-8">
+      <CartelAvisos />
       <ProximaFecha
         fechas={(fechas as FechaEspecial[]) ?? []}
         voy={(voy as Voy[]) ?? []}
@@ -94,6 +108,35 @@ async function Listado() {
             </Link>
           ))}
         </div>
+      )}
+      {(sondeos ?? []).length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Votá la fecha</h2>
+          {(sondeos ?? []).map((s) => {
+            const votantes = new Set(s.sondeo_opciones.flatMap((o) => o.sondeo_votos.map((v) => v.perfil_id)));
+            const vote = votantes.has(uid ?? "");
+            return (
+              <Link
+                key={s.id}
+                href={`/sondeo/${s.id}`}
+                className={`flex items-center gap-3 rounded-2xl border p-4 active:scale-[0.99] ${
+                  vote ? "border-borde bg-superficie" : "border-2 border-violet-400/60 bg-violet-500/10"
+                }`}
+              >
+                <CalendarRange className="size-6 shrink-0 text-violet-300" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">{s.nombre}</p>
+                  <p className="text-xs text-texto-suave">
+                    {s.sondeo_opciones.length} fechas posibles · votaron {votantes.size}
+                  </p>
+                </div>
+                <span className="flex items-center gap-1 text-sm font-semibold text-violet-300">
+                  {vote ? "Ver" : "Votar"} <ChevronRight className="size-4" />
+                </span>
+              </Link>
+            );
+          })}
+        </section>
       )}
       {activa ? (
         <Link

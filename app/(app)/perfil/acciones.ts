@@ -20,6 +20,22 @@ export async function cambiarApodo(apodo: string) {
   return { ok: true };
 }
 
+export async function cambiarAlias(alias: string) {
+  const limpio = alias.trim().slice(0, 60);
+  if (limpio && limpio.length < 3) return { error: "El alias es muy corto." };
+
+  const supabase = await crearClienteServidor();
+  const { data } = await supabase.auth.getClaims();
+  const uid = data?.claims?.sub;
+  if (!uid) return { error: "Sesión vencida." };
+
+  const { error } = await supabase.from("perfiles").update({ alias: limpio || null }).eq("id", uid);
+  if (error) return { error: "No se pudo guardar." };
+
+  revalidatePath("/perfil");
+  return { ok: true };
+}
+
 export async function regenerarQR() {
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase.rpc("rotar_mi_qr");

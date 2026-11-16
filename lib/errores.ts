@@ -14,6 +14,9 @@ const MENSAJES: Record<string, string> = {
   TODAVIA_NO: "Todavía no es la hora: arranca sola a la hora programada.",
   JUNTADA_INEXISTENTE: "Esa juntada ya no existe.",
   JUNTADA_CERRADA: "Esa juntada ya no se puede cambiar así.",
+  SONDEO_CERRADO: "Esa votación ya se cerró.",
+  SONDEO_INEXISTENTE: "Esa votación ya no existe.",
+  FECHA_PASADA: "Esa fecha ya pasó: elegí otra.",
   PERFIL_INEXISTENTE: "No encontramos a esa persona.",
 };
 

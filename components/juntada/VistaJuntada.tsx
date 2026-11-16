@@ -27,6 +27,8 @@ import type { Asistencia, Confirmacion, Juntada, Perfil } from "@/lib/tipos";
 import { Avatar } from "@/components/ui/Avatar";
 import { SeccionConsumos } from "@/components/juntada/SeccionConsumos";
 import { EditarJuntada } from "@/components/juntada/EditarJuntada";
+import { SeccionLlevar } from "@/components/juntada/SeccionLlevar";
+import { SeccionFotos } from "@/components/juntada/SeccionFotos";
 
 type Props = {
   juntadaInicial: Juntada;
@@ -435,6 +437,20 @@ export function VistaJuntada({
             </div>
           ))}
         </Seccion>
+      )}
+
+      {juntada.estado !== "cancelada" && (
+        <SeccionLlevar
+          juntadaId={id}
+          uid={uid}
+          puedeGestionar={puedeGestionar}
+          perfiles={perfiles}
+          abierta={abierta}
+        />
+      )}
+
+      {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
+        <SeccionFotos juntadaId={id} uid={uid} puedeGestionar={puedeGestionar} puedeSubir />
       )}
 
       {(juntada.estado === "activa" || juntada.estado === "finalizada") && (

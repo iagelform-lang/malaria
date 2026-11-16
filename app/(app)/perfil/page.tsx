@@ -25,7 +25,7 @@ async function ContenidoPerfil() {
   if (!uid) redirect("/login");
 
   const [{ data: perfil }, { data: credencial }] = await Promise.all([
-    supabase.from("perfiles").select("apodo, rol").eq("id", uid).single(),
+    supabase.from("perfiles").select("apodo, rol, alias").eq("id", uid).single(),
     supabase.from("credenciales_qr").select("token").eq("perfil_id", uid).single(),
   ]);
 
@@ -39,6 +39,7 @@ async function ContenidoPerfil() {
     <TarjetaPerfil
       apodo={perfil.apodo}
       esAdmin={perfil.rol === "admin"}
+      alias={perfil.alias ?? ""}
       email={(claims?.claims?.email as string | undefined) ?? ""}
       tokenInicial={credencial.token}
     />

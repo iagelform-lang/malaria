@@ -6,6 +6,7 @@ export type Perfil = {
   apodo: string;
   avatar_url: string | null;
   rol: "admin" | "invitado";
+  alias?: string | null;
 };
 
 export type Juntada = {

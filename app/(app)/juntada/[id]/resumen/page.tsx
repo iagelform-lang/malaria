@@ -5,6 +5,8 @@ import { ArrowLeft, Clock, Crown, MapPin, UtensilsCrossed } from "lucide-react";
 import { usuarioActual } from "@/lib/sesion";
 import { duracion, fechaYHora, hora } from "@/lib/tiempo";
 import { calcularCuentas, pesos } from "@/lib/cuentas";
+import { CopiarAlias } from "@/components/juntada/CopiarAlias";
+import { SeccionFotos } from "@/components/juntada/SeccionFotos";
 import { TIPOS } from "@/lib/consumos";
 import { Avatar } from "@/components/ui/Avatar";
 import type { Asistencia, Confirmacion, Juntada } from "@/lib/tipos";
@@ -34,12 +36,12 @@ type ConsumoR = {
 
 async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { supabase } = await usuarioActual();
+  const { supabase, uid } = await usuarioActual();
 
   const [{ data: j }, { data: perfs }, { data: asis }, { data: conf }, { data: cons }, { data: excl }, { data: pags }] =
     await Promise.all([
       supabase.from("juntadas").select("*").eq("id", id).maybeSingle(),
-      supabase.from("perfiles").select("id, apodo"),
+      supabase.from("perfiles").select("id, apodo, alias"),
       supabase.from("asistencias").select("*").eq("juntada_id", id).order("entrada"),
       supabase.from("confirmaciones").select("*").eq("juntada_id", id),
       supabase.from("consumos").select("tipo, descripcion, monto, pagado_por").eq("juntada_id", id).order("creado_en"),
@@ -149,6 +151,8 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
       )}
 
       {/* Quién fue */}
+      <SeccionFotos juntadaId={id} uid={uid ?? ""} puedeGestionar={false} puedeSubir={false} />
+
       <Seccion titulo={`Quién fue · ${personas.length}`}>
         {personas.length === 0 && <p className="text-sm text-texto-suave">No se registró nadie.</p>}
         {personas.map((p) => (
@@ -217,9 +221,14 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
             </p>
             {cuentas.deudas.length ? (
               cuentas.deudas.map((d) => (
-                <p key={`${d.de}-${d.a}`}>
-                  <b>{apodo(d.de)}</b> le debe <b>{pesos(d.monto)}</b> a <b>{apodo(d.a)}</b>
-                </p>
+                <div key={`${d.de}-${d.a}`} className="flex flex-col gap-1">
+                  <p>
+                    <b>{apodo(d.de)}</b> le debe <b>{pesos(d.monto)}</b> a <b>{apodo(d.a)}</b>
+                  </p>
+                  {perfs?.find((p) => p.id === d.a)?.alias && (
+                    <CopiarAlias alias={perfs.find((p) => p.id === d.a)!.alias!} />
+                  )}
+                </div>
               ))
             ) : (
               <p className="text-acento">✓ Cuentas claras</p>

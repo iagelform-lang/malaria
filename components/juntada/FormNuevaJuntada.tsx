@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, CalendarRange, Loader2, Plus, X } from "lucide-react";
 import { CampoComida } from "@/components/juntada/CampoComida";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { aInputLocal, desdeInputLocal } from "@/lib/tiempo";
@@ -22,11 +22,51 @@ export function FormNuevaJuntada() {
   const [comida, setComida] = useState("");
   const [inicio, setInicio] = useState(proximaHoraRedonda);
   const [tolerancia, setTolerancia] = useState(15);
+  const [votarFecha, setVotarFecha] = useState(false);
+  const [opciones, setOpciones] = useState<string[]>(() => {
+    const base = proximaHoraRedonda();
+    const otra = new Date(desdeInputLocal(base));
+    otra.setDate(otra.getDate() + 1);
+    return [base, aInputLocal(otra)];
+  });
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  async function abrirVotacion() {
+    const fechas = [...new Set(opciones.filter(Boolean))].map(desdeInputLocal);
+    if (fechas.length < 2) return setError("Poné al menos 2 fechas distintas.");
+    if (fechas.some((f) => new Date(f).getTime() <= Date.now())) return setError("Las fechas tienen que ser en el futuro.");
+    setGuardando(true);
+    setError(null);
+    const supabase = crearClienteNavegador();
+    const { data, error } = await supabase
+      .from("sondeos")
+      .insert({
+        nombre: nombre.trim(),
+        lugar: lugar.trim() || null,
+        comida: comida.trim() || null,
+        tolerancia_min: tolerancia,
+      })
+      .select("id")
+      .single();
+    if (error || !data) {
+      setGuardando(false);
+      return setError("No se pudo abrir la votación.");
+    }
+    const { error: e2 } = await supabase
+      .from("sondeo_opciones")
+      .insert(fechas.map((inicio) => ({ sondeo_id: data.id, inicio })));
+    if (e2) {
+      await supabase.from("sondeos").delete().eq("id", data.id);
+      setGuardando(false);
+      return setError("No se pudieron guardar las fechas.");
+    }
+    router.replace(`/sondeo/${data.id}`);
+  }
+
   async function proponer(e: React.FormEvent) {
     e.preventDefault();
+    if (votarFecha) return abrirVotacion();
     setGuardando(true);
     setError(null);
     const supabase = crearClienteNavegador();
@@ -93,15 +133,73 @@ export function FormNuevaJuntada() {
           />
         </Campo>
         <CampoComida valor={comida} cambiar={setComida} claseInput={estiloInput} />
-        <Campo etiqueta="¿Cuándo arranca?">
-          <input
-            required
-            type="datetime-local"
-            value={inicio}
-            onChange={(e) => setInicio(e.target.value)}
-            className={estiloInput}
-          />
-        </Campo>
+        <button
+          type="button"
+          onClick={() => setVotarFecha(!votarFecha)}
+          className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left ${
+            votarFecha ? "border-acento bg-acento/10" : "border-borde bg-superficie"
+          }`}
+        >
+          <CalendarRange className={`size-5 shrink-0 ${votarFecha ? "text-acento" : "text-texto-suave"}`} />
+          <span className="flex-1 text-sm">
+            <b>¿No saben qué día?</b> Proponé varias fechas y que cada uno vote cuáles puede.
+          </span>
+          <span
+            className={`h-6 w-11 shrink-0 rounded-full p-0.5 transition ${votarFecha ? "bg-acento" : "bg-borde"}`}
+          >
+            <span className={`block size-5 rounded-full bg-white transition ${votarFecha ? "translate-x-5" : ""}`} />
+          </span>
+        </button>
+
+        {votarFecha ? (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-texto-suave">Fechas posibles</span>
+            {opciones.map((o, i) => (
+              <div key={i} className="flex gap-2">
+                <input
+                  required
+                  type="datetime-local"
+                  value={o}
+                  onChange={(e) => setOpciones(opciones.map((x, k) => (k === i ? e.target.value : x)))}
+                  className={estiloInput}
+                />
+                {opciones.length > 2 && (
+                  <button
+                    type="button"
+                    onClick={() => setOpciones(opciones.filter((_, k) => k !== i))}
+                    className="rounded-xl border border-borde px-3 text-texto-suave"
+                    aria-label="Quitar fecha"
+                  >
+                    <X className="size-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+            {opciones.length < 5 && (
+              <button
+                type="button"
+                onClick={() => {
+                  const ultima = new Date(desdeInputLocal(opciones.at(-1) ?? proximaHoraRedonda()));
+                  ultima.setDate(ultima.getDate() + 1);
+                  setOpciones([...opciones, aInputLocal(ultima)]);
+                }}
+                className="flex w-fit items-center gap-1 text-sm text-acento"
+              >
+                <Plus className="size-4" /> Otra fecha
+              </button>
+            )}
+          </div>
+        ) : (
+          <Campo etiqueta="¿Cuándo arranca?">
+            <input
+              required
+              type="datetime-local"
+              value={inicio}
+              onChange={(e) => setInicio(e.target.value)}
+              className={estiloInput}
+            />
+          </Campo>
+        )}
         <Campo etiqueta={`Tolerancia para llegar tarde: ${tolerancia} min`}>
           <input
             type="range"
@@ -120,7 +218,7 @@ export function FormNuevaJuntada() {
           className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black active:scale-[0.98] disabled:opacity-50"
         >
           {guardando && <Loader2 className="size-5 animate-spin" />}
-          Proponer
+          {votarFecha ? "Abrir votación" : "Proponer"}
         </button>
         {error && <p className="text-center text-sm text-red-400">{error}</p>}
       </form>

@@ -2,18 +2,21 @@
 
 import { useState, useTransition } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Check, LogOut, Pencil, RefreshCw, ShieldCheck, X } from "lucide-react";
+import { Check, Landmark, LogOut, Pencil, RefreshCw, ShieldCheck, X } from "lucide-react";
 import { PREFIJO_QR } from "@/lib/constantes";
-import { cambiarApodo, cerrarSesion, regenerarQR } from "@/app/(app)/perfil/acciones";
+import { cambiarAlias, cambiarApodo, cerrarSesion, regenerarQR } from "@/app/(app)/perfil/acciones";
 
 type Props = {
   apodo: string;
   esAdmin: boolean;
+  alias: string;
   email: string;
   tokenInicial: string;
 };
 
-export function TarjetaPerfil({ apodo, esAdmin, email, tokenInicial }: Props) {
+export function TarjetaPerfil({ apodo, esAdmin, alias, email, tokenInicial }: Props) {
+  const [editandoAlias, setEditandoAlias] = useState(false);
+  const [aliasBorrador, setAliasBorrador] = useState(alias);
   const [token, setToken] = useState(tokenInicial);
   const [editando, setEditando] = useState(false);
   const [borrador, setBorrador] = useState(apodo);
@@ -27,6 +30,17 @@ export function TarjetaPerfil({ apodo, esAdmin, email, tokenInicial }: Props) {
       if ("error" in r && r.error) setMensaje(r.error);
       else {
         setEditando(false);
+        setMensaje(null);
+      }
+    });
+  }
+
+  function guardarAlias() {
+    iniciar(async () => {
+      const r = await cambiarAlias(aliasBorrador);
+      if ("error" in r && r.error) setMensaje(r.error);
+      else {
+        setEditandoAlias(false);
         setMensaje(null);
       }
     });
@@ -80,6 +94,42 @@ export function TarjetaPerfil({ apodo, esAdmin, email, tokenInicial }: Props) {
           <span className="mt-1 flex items-center gap-1 rounded-full bg-acento/15 px-3 py-1 text-xs font-medium text-acento">
             <ShieldCheck className="size-3.5" /> Admin
           </span>
+        )}
+      </div>
+
+      {/* Alias para que le transfieran */}
+      <div className="w-full rounded-2xl border border-borde bg-superficie p-3">
+        <p className="mb-1.5 flex items-center gap-1.5 text-xs text-texto-suave">
+          <Landmark className="size-3.5" /> Alias para que te transfieran (Mercado Pago o banco)
+        </p>
+        {editandoAlias ? (
+          <div className="flex items-center gap-2">
+            <input
+              autoFocus
+              maxLength={60}
+              placeholder="ej: rama.mp"
+              value={aliasBorrador}
+              onChange={(e) => setAliasBorrador(e.target.value)}
+              className="min-w-0 flex-1 rounded-xl border border-borde bg-fondo px-3 py-2 outline-none focus:border-acento"
+            />
+            <button onClick={guardarAlias} disabled={pendiente} className="rounded-xl bg-acento p-2.5 text-black">
+              <Check className="size-4" />
+            </button>
+            <button
+              onClick={() => {
+                setEditandoAlias(false);
+                setAliasBorrador(alias);
+              }}
+              className="rounded-xl border border-borde p-2.5"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setEditandoAlias(true)} className="flex w-full items-center justify-between">
+            <span className={alias ? "font-semibold" : "text-texto-suave"}>{alias || "Cargá tu alias"}</span>
+            <Pencil className="size-4 text-texto-suave" />
+          </button>
         )}
       </div>
 
