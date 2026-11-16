@@ -94,13 +94,13 @@ export function SeccionJuegos({
           <Dices className="size-4" /> Juegos{" "}
           {partidas.length > 0 && `(${partidas.length})`}
         </h2>
-        {puedeCargar && !abierto && (
-          <button
-            onClick={() => setAbierto(true)}
+        {puedeCargar && (
+          <Link
+            href="/juegos"
             className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-black"
           >
-            <Plus className="size-4" /> Partida
-          </button>
+            <Plus className="size-4" /> Jugar
+          </Link>
         )}
       </div>
 
@@ -129,7 +129,7 @@ export function SeccionJuegos({
 
       {partidas.length === 0 && !abierto && (
         <p className="text-sm text-texto-suave">
-          ¿Jugaron algo? Cargá quién ganó y suma a las estadísticas.
+          ¿Jugaron algo? Tocá Jugar, elegí el juego y cargá los puestos para sumar puntos.
         </p>
       )}
 

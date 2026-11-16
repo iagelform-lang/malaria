@@ -51,6 +51,7 @@ async function Contenido() {
     { data: activas },
     { data: posTorneos },
     { data: torneos },
+    { data: juegosJugados },
   ] = await Promise.all([
     supabase
       .from("juegos")
@@ -75,6 +76,7 @@ async function Contenido() {
       .select("id, juego, creado_en, cargado_por, torneo_posiciones(perfil_id, puesto)")
       .order("creado_en", { ascending: false })
       .limit(10),
+    supabase.from("torneos").select("juego"),
   ]);
   const catalogo = (juegos as Juego[]) ?? [];
   const tablaJ = tablaTorneos(posTorneos ?? []);
@@ -86,8 +88,9 @@ async function Contenido() {
       p.partida_jugadores.map((j) => ({ ...j, partida_id: p.id })),
     ) as JugadorR[],
   );
+  // cuántos torneos se jugaron de cada juego
   const cuantas = (nombre: string) =>
-    lista.filter((p) => p.juego.toLowerCase() === nombre.toLowerCase()).length;
+    (juegosJugados ?? []).filter((t) => t.juego.toLowerCase() === nombre.toLowerCase()).length;
   const activa = activas?.[0];
 
   return (

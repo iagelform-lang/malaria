@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus, Trash2, X } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
@@ -141,14 +142,19 @@ export function CatalogoJuegos({
               key={j.id}
               className="flex items-center gap-2 rounded-2xl bg-superficie p-3"
             >
-              <span className="text-2xl">{j.emoji}</span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold">{j.nombre}</p>
-                <p className="text-xs text-texto-suave">
-                  {j.partidas} {j.partidas === 1 ? "partida" : "partidas"} ·{" "}
-                  {j.modo === "equipos" ? "equipos" : "individual"}
-                </p>
-              </div>
+              <Link
+                href={j.nombre.toLowerCase() === "bid womens" ? "/juegos/bid" : `/juegos/torneo/${j.id}`}
+                className="flex min-w-0 flex-1 items-center gap-2"
+              >
+                <span className="text-2xl">{j.emoji}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">{j.nombre}</p>
+                  <p className="text-xs text-texto-suave">
+                    {j.partidas} {j.partidas === 1 ? "torneo" : "torneos"} ·{" "}
+                    <span className="font-semibold text-acento">Jugar ›</span>
+                  </p>
+                </div>
+              </Link>
               {puedeBorrar && j.partidas === 0 && (
                 <button
                   disabled={ocupado !== null}
