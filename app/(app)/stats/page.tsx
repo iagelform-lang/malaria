@@ -70,7 +70,7 @@ async function Contenido() {
     supabase
       .from("consumos")
       .select("juntada_id, tipo, descripcion, monto, pagado_por"),
-    supabase.from("perfiles").select("id, apodo, activo"),
+    supabase.from("perfiles").select("id, apodo, activo, oculto"),
     supabase.from("partidas").select("id, juego"),
     supabase.from("partida_jugadores").select("partida_id, perfil_id, gano"),
     supabase.from("fechas_especiales").select("id, puntos"),
@@ -83,7 +83,11 @@ async function Contenido() {
   const idsFin = new Set((jFin ?? []).map((j) => j.id));
   const apodos = Object.fromEntries((perfs ?? []).map((p) => [p.id, p.apodo]));
   // todo a número: sin juntadas terminadas, cada métrica vale 0 (nunca null/NaN)
-  const stats = ((data as Estadistica[]) ?? []).map(normalizarEstadistica);
+  // las cuentas ocultas (ej: "Admin") no son integrantes: no van en las estadísticas
+  const ocultos = new Set((perfs ?? []).filter((p) => p.oculto).map((p) => p.id));
+  const stats = ((data as Estadistica[]) ?? [])
+    .filter((e) => !ocultos.has(e.perfil_id))
+    .map(normalizarEstadistica);
   const insignias = calcularInsignias(stats);
   const horasGrupo = stats.reduce((s, x) => s + aNumero(x.horas_totales), 0);
 
@@ -103,7 +107,7 @@ async function Contenido() {
       </div>
 
       <RankingPuntos
-        todos={(perfs ?? []).filter((p) => p.activo).map((p) => p.id)}
+        todos={(perfs ?? []).filter((p) => p.activo && !p.oculto).map((p) => p.id)}
         filas={rankingPuntos(
           jFin ?? [],
           (asis ?? []).filter((a) => idsFin.has(a.juntada_id)),

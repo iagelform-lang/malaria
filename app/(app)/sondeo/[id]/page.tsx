@@ -17,7 +17,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   const [{ data: sondeo }, { data: opciones }, { data: perfiles }, { data: mayoria }] = await Promise.all([
     supabase.from("sondeos").select("*").eq("id", id).maybeSingle(),
     supabase.from("sondeo_opciones").select("id, inicio").eq("sondeo_id", id).order("inicio"),
-    supabase.from("perfiles").select("id, apodo").eq("activo", true),
+    supabase.from("perfiles").select("id, apodo").eq("activo", true).eq("oculto", false),
     supabase.rpc("votos_para_mayoria"),
   ]);
   if (!sondeo) notFound();

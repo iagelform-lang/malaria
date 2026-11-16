@@ -41,6 +41,7 @@ export function FormNuevaJuntada() {
       .from("perfiles")
       .select("id, apodo")
       .eq("activo", true)
+      .eq("oculto", false)
       .order("apodo")
       .then(({ data }) => setMiembros(data ?? []));
   }, []);

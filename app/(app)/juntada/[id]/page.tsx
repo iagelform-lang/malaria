@@ -26,7 +26,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
 
   const [{ data: juntada }, { data: perfiles }, { data: asistencias }, { data: confirmaciones }] = await Promise.all([
     supabase.from("juntadas").select("*").eq("id", id).maybeSingle(),
-    supabase.from("perfiles").select("id, apodo, avatar_url, rol, alias").eq("activo", true),
+    supabase.from("perfiles").select("id, apodo, avatar_url, rol, alias").eq("activo", true).eq("oculto", false),
     supabase.from("asistencias").select("*").eq("juntada_id", id).order("entrada"),
     supabase.from("confirmaciones").select("*").eq("juntada_id", id),
   ]);
