@@ -121,7 +121,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   const lineas = [
     `🦟 *${juntada.nombre}* · resumen`,
     `${fechaYHora(juntada.inicio_programado)}${juntada.lugar ? ` · ${juntada.lugar}` : ""}`,
-    "",
+    "\u200b",
     `👥 Fueron ${personas.length}: ${personas.map((p) => apodo(p.pid)).join(", ") || "nadie"}`,
     primero ? `🚀 Llegó primero: ${apodo(primero.pid)} (${hora(primero.llegada)})` : "",
     ultimo?.salida ? `💡 Apagó la luz: ${apodo(ultimo.pid)} (${hora(ultimo.salida)})` : "",
@@ -132,7 +132,9 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
     ...campeones.map((c) => `🏆 ${c.juego}: ganó ${apodo(c.gano!)}`),
     fraseTop ? `💬 Frase de la noche: "${fraseTop.texto}" — ${apodo(fraseTop.perfil_id)}` : "",
     `⭐ Cada uno sumó ${juntada.puntos ?? 10} puntos`,
-  ].filter((l, i, arr) => l !== "" || (i > 0 && arr[i - 1] !== ""));
+  ]
+    .filter((l) => l !== "")
+    .map((l) => (l === "\u200b" ? "" : l));
   const textoWhatsApp = lineas.join("\n");
 
   return (

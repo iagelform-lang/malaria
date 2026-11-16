@@ -7,7 +7,7 @@ export function Solapas({ solapas }: { solapas: { clave: string; titulo: string;
   const [activa, setActiva] = useState(solapas[0]?.clave);
   return (
     <div className="flex flex-col gap-5">
-      <div className="sticky top-0 z-10 -mx-4 overflow-x-auto bg-fondo/95 px-4 py-2 backdrop-blur">
+      <div className="sticky top-0 z-10 -mx-4 overflow-x-auto bg-fondo/95 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-4 py-2 backdrop-blur">
         <div className="flex w-max gap-1.5">
           {solapas.map((s) => (
             <button
