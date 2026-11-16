@@ -70,7 +70,7 @@ async function Contenido() {
     supabase
       .from("consumos")
       .select("juntada_id, tipo, descripcion, monto, pagado_por"),
-    supabase.from("perfiles").select("id, apodo"),
+    supabase.from("perfiles").select("id, apodo, activo"),
     supabase.from("partidas").select("id, juego"),
     supabase.from("partida_jugadores").select("partida_id, perfil_id, gano"),
     supabase.from("fechas_especiales").select("id, puntos"),
@@ -103,6 +103,7 @@ async function Contenido() {
       </div>
 
       <RankingPuntos
+        todos={(perfs ?? []).filter((p) => p.activo).map((p) => p.id)}
         filas={rankingPuntos(
           jFin ?? [],
           (asis ?? []).filter((a) => idsFin.has(a.juntada_id)),

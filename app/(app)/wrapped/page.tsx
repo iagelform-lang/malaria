@@ -123,10 +123,10 @@ async function Contenido({
       <Tarjeta emoji="⭐" titulo="Tabla de puntos del año">
         {w.puntos.length ? (
           <ol className="flex flex-col gap-1">
-            {w.puntos.slice(0, 5).map((p, i) => (
+            {w.puntos.map((p, i) => (
               <li key={p.id} className="flex justify-between">
                 <span>
-                  {["🥇", "🥈", "🥉", "4.", "5."][i]} {apodo(p)}
+                  {i < 3 ? ["🥇", "🥈", "🥉"][i] : `${i + 1}.`} {apodo(p)}
                 </span>
                 <b>{p.valor} pts</b>
               </li>
