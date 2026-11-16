@@ -41,7 +41,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
         {juego.emoji} {juego.nombre}
       </h1>
       <p className="-mt-2 text-xs text-texto-suave">
-        {activa ? `Queda cargado en ${activa.nombre}.` : "Se guarda como torneo suelto."}
+        {activa ? `Queda cargado en ${activa.nombre}.` : "No hay juntada en curso: se guarda suelto."}
       </p>
       <ModoJuego
         juego={juego.nombre}
