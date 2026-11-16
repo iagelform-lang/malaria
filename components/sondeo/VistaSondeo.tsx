@@ -16,6 +16,7 @@ import {
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { fechaYHora } from "@/lib/tiempo";
 import { mensajeError } from "@/lib/errores";
+import { nivelDe } from "@/lib/juegos";
 import { useAhora } from "@/lib/hooks/useAhora";
 
 export type Sondeo = {
@@ -144,8 +145,7 @@ export function VistaSondeo({
           <ArrowLeft className="size-5" />
         </Link>
         <span className="w-fit rounded-full bg-violet-500/15 px-2.5 py-0.5 text-xs font-medium text-violet-300">
-          Votando la fecha · ⭐ {sondeo.puntos ?? 1}{" "}
-          {(sondeo.puntos ?? 1) === 1 ? "punto" : "puntos"}
+          Votando la fecha · ⭐ {nivelDe(sondeo.puntos ?? 10).nombre} · {sondeo.puntos ?? 10} pts
         </span>
         <h1 className="text-3xl font-bold leading-tight">{sondeo.nombre}</h1>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-texto-suave">

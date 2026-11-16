@@ -6,6 +6,7 @@ import { CalendarHeart, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { useAhora } from "@/lib/hooks/useAhora";
 import { nombreRango, ordenarProximas, type FechaEspecial } from "@/lib/fechas";
+import { ElegirPuntos } from "@/components/juntada/ElegirPuntos";
 
 const MESES = [
   "enero",
@@ -34,6 +35,7 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
   const [desde, setDesde] = useState("");
   const [lugar, setLugar] = useState("");
   const [duracion, setDuracion] = useState(1);
+  const [puntos, setPuntos] = useState(70);
   const [borrando, setBorrando] = useState<number | null>(null);
   const [editando, setEditando] = useState<number | null>(null);
   const [ocupado, setOcupado] = useState(false);
@@ -52,6 +54,7 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
       desde_anio: anio,
       lugar: lugar.trim() || null,
       duracion_dias: duracion,
+      puntos,
     };
     const { error } = editando
       ? await supabase.from("fechas_especiales").update(datos).eq("id", editando)
@@ -72,6 +75,7 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
     setDesde("");
     setLugar("");
     setDuracion(1);
+    setPuntos(70);
   }
 
   function editar(f: FechaEspecial) {
@@ -83,6 +87,7 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
     setDesde(f.desde_anio ? String(f.desde_anio) : "");
     setLugar(f.lugar ?? "");
     setDuracion(f.duracion_dias ?? 1);
+    setPuntos(f.puntos ?? 10);
     setError(null);
     setAbierto(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -171,6 +176,7 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
             onChange={(e) => setDesde(e.target.value.replace(/\D/g, ""))}
             className="rounded-xl border border-borde bg-fondo px-3 py-3 text-sm outline-none focus:border-acento"
           />
+          <ElegirPuntos valor={puntos} cambiar={setPuntos} etiqueta="Puntos para los que marcan Voy" />
           {error && <p className="text-sm text-red-400">{error}</p>}
           <div className="flex gap-2">
             <button
@@ -202,6 +208,7 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
               {nombreRango(f)}
               {f.desde_anio && ` · desde ${f.desde_anio}`}
               {f.lugar && ` · 📍 ${f.lugar}`}
+              {` · ⭐ ${f.puntos ?? 10} pts`}
             </p>
           </div>
           <span className={`text-sm font-semibold ${f.enCurso ? "text-acento" : ""}`}>

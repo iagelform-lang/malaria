@@ -44,7 +44,8 @@ async function Contenido({
   const sp = await searchParams;
   // se calcula en cada pedido (la página es dinámica), así que leer la hora acá es correcto
   // eslint-disable-next-line react-hooks/purity
-  const anioActual = new Date(Date.now() - 3 * 3600_000).getUTCFullYear();
+  const hoyBA = new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10);
+  const anioActual = Number(hoyBA.slice(0, 4));
   const pedido = Number(Array.isArray(sp.anio) ? sp.anio[0] : sp.anio);
   const anio =
     Number.isInteger(pedido) && pedido > 2000 && pedido <= anioActual
@@ -60,6 +61,8 @@ async function Contenido({
     { count: fotos },
     { data: pts },
     { data: jgs },
+    { data: evs },
+    { data: voyEv },
   ] = await Promise.all([
     supabase
       .from("juntadas")
@@ -76,6 +79,8 @@ async function Contenido({
     supabase.from("fotos").select("id", { count: "exact", head: true }),
     supabase.from("partidas").select("id, juntada_id"),
     supabase.from("partida_jugadores").select("partida_id, perfil_id, gano"),
+    supabase.from("fechas_especiales").select("id, puntos"),
+    supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
   ]);
 
   const delAnio = ((js as JW[]) ?? []).filter((j) =>
@@ -88,6 +93,9 @@ async function Contenido({
     (gs as GW[]) ?? [],
     (pts as PW[]) ?? [],
     (jgs as JugW[]) ?? [],
+    evs ?? [],
+    (voyEv ?? []).filter((v) => v.dia.startsWith(String(anio))),
+    hoyBA,
   );
   const apodo = (p: Persona | null) =>
     p ? ((ps ?? []).find((x) => x.id === p.id)?.apodo ?? "?") : "Nadie todavía";

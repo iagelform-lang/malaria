@@ -57,6 +57,8 @@ async function Contenido() {
     { data: perfs },
     { data: parts },
     { data: jugs },
+    { data: eventos },
+    { data: voyEv },
   ] = await Promise.all([
     supabase.from("v_estadisticas").select("*"),
     supabase
@@ -71,7 +73,12 @@ async function Contenido() {
     supabase.from("perfiles").select("id, apodo"),
     supabase.from("partidas").select("id, juego"),
     supabase.from("partida_jugadores").select("partida_id, perfil_id, gano"),
+    supabase.from("fechas_especiales").select("id, puntos"),
+    supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
   ]);
+  // hoy en Buenos Aires: los eventos suman recién cuando ya pasaron
+  // eslint-disable-next-line react-hooks/purity
+  const hoyBA = new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10);
   const finalizadas = jFin?.length ?? 0;
   const idsFin = new Set((jFin ?? []).map((j) => j.id));
   const apodos = Object.fromEntries((perfs ?? []).map((p) => [p.id, p.apodo]));
@@ -99,6 +106,9 @@ async function Contenido() {
         filas={rankingPuntos(
           jFin ?? [],
           (asis ?? []).filter((a) => idsFin.has(a.juntada_id)),
+          eventos ?? [],
+          voyEv ?? [],
+          hoyBA,
         )}
         apodos={apodos}
         uid={uid ?? ""}

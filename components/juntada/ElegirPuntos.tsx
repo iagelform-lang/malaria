@@ -2,20 +2,20 @@
 
 import { NIVELES } from "@/lib/juegos";
 
-/** Qué tan importante es la juntada: normal 1 punto, media 5, importante 10 (ej: cumpleaños) */
+/** Qué tipo de juntada es: normal 10 puntos, salida 30, asado 50, viaje / cumpleaños 70 */
 export function ElegirPuntos({
   valor,
   cambiar,
+  etiqueta = "¿Qué tipo de juntada es? (el que va suma estos puntos)",
 }: {
   valor: number;
   cambiar: (p: number) => void;
+  etiqueta?: string;
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-sm text-texto-suave">
-        ¿Qué tan importante es? (el que va suma estos puntos)
-      </span>
-      <div className="grid grid-cols-3 gap-2">
+      <span className="text-sm text-texto-suave">{etiqueta}</span>
+      <div className="grid grid-cols-2 gap-2">
         {NIVELES.map((n) => (
           <button
             key={n.puntos}

@@ -37,7 +37,7 @@ export function EditarJuntada({
   const [inicio, setInicio] = useState(inicioOriginal);
   const [tolerancia, setTolerancia] = useState(juntada.tolerancia_min);
   const [anfitrion, setAnfitrion] = useState(juntada.anfitrion_id);
-  const [puntos, setPuntos] = useState(juntada.puntos ?? 1);
+  const [puntos, setPuntos] = useState(juntada.puntos ?? 10);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

@@ -69,30 +69,49 @@ export const EMOJIS_JUEGO = [
 
 // ---------- Puntos de cada juntada ----------
 export const NIVELES = [
-  { puntos: 1, nombre: "Normal", detalle: "1 punto" },
-  { puntos: 5, nombre: "Media", detalle: "5 puntos" },
-  { puntos: 10, nombre: "Importante", detalle: "10 puntos · ej: cumpleaños" },
+  { puntos: 10, nombre: "Normal", detalle: "10 puntos" },
+  { puntos: 30, nombre: "Salida", detalle: "30 puntos" },
+  { puntos: 50, nombre: "Asado", detalle: "50 puntos" },
+  { puntos: 70, nombre: "Viaje / cumpleaños", detalle: "70 puntos" },
 ] as const;
 export const nivelDe = (puntos: number) =>
   NIVELES.find((n) => n.puntos === puntos) ?? NIVELES[0];
 
-/** Puntos por ir: cada uno suma los puntos de las juntadas terminadas a las que fue */
+/**
+ * Puntos por ir: cada uno suma los puntos de las juntadas terminadas a las que fue,
+ * y los de los eventos del grupo (El Malariaso, cumpleaños) en los que marcó "Voy" y ya pasaron.
+ */
 export function rankingPuntos(
-  juntadas: { id: string; puntos: number | null }[],
+  juntadas: { id: string; puntos?: number | null }[],
   asistencias: { juntada_id: string; perfil_id: string }[],
+  eventos: { id: number; puntos?: number | null }[] = [],
+  voyEventos: { fecha_id: number; perfil_id: string; dia: string }[] = [],
+  hoy = "9999-12-31",
 ) {
-  const puntos = new Map(juntadas.map((j) => [j.id, Number(j.puntos) || 1]));
+  const puntos = new Map(juntadas.map((j) => [j.id, Number(j.puntos) || 10]));
+  const puntosEvento = new Map(eventos.map((e) => [e.id, Number(e.puntos) || 10]));
   const vistos = new Set<string>();
   const total = new Map<string, { puntos: number; juntadas: number }>();
-  for (const a of asistencias) {
-    const p = puntos.get(a.juntada_id);
-    const clave = `${a.juntada_id}|${a.perfil_id}`;
-    if (p === undefined || vistos.has(clave)) continue;
-    vistos.add(clave);
-    const x = total.get(a.perfil_id) ?? { puntos: 0, juntadas: 0 };
+  const sumar = (perfil: string, p: number) => {
+    const x = total.get(perfil) ?? { puntos: 0, juntadas: 0 };
     x.puntos += p;
     x.juntadas++;
-    total.set(a.perfil_id, x);
+    total.set(perfil, x);
+  };
+  for (const a of asistencias) {
+    const p = puntos.get(a.juntada_id);
+    const clave = `j|${a.juntada_id}|${a.perfil_id}`;
+    if (p === undefined || vistos.has(clave)) continue;
+    vistos.add(clave);
+    sumar(a.perfil_id, p);
+  }
+  // un evento suma una vez por año aunque dure varios días (El Malariaso)
+  for (const v of voyEventos) {
+    const p = puntosEvento.get(v.fecha_id);
+    const clave = `e|${v.fecha_id}|${v.dia.slice(0, 4)}|${v.perfil_id}`;
+    if (p === undefined || v.dia > hoy || vistos.has(clave)) continue;
+    vistos.add(clave);
+    sumar(v.perfil_id, p);
   }
   return [...total.entries()]
     .map(([perfil_id, x]) => ({ perfil_id, ...x }))

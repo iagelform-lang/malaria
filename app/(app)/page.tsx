@@ -63,7 +63,7 @@ async function Listado() {
         .eq("estado", "finalizada")
         .order("inicio_programado", { ascending: false })
         .limit(5),
-      supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio, lugar, creado_por, duracion_dias"),
+      supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio, lugar, creado_por, duracion_dias, puntos"),
       supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
       supabase.from("perfiles").select("id, apodo"),
       supabase

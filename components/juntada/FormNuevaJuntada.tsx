@@ -23,7 +23,7 @@ export function FormNuevaJuntada() {
   const [comida, setComida] = useState("");
   const [inicio, setInicio] = useState(proximaHoraRedonda);
   const [tolerancia, setTolerancia] = useState(15);
-  const [puntos, setPuntos] = useState(1);
+  const [puntos, setPuntos] = useState(10);
   const [votarFecha, setVotarFecha] = useState(true);
   const [casaDe, setCasaDe] = useState("");
   const [miembros, setMiembros] = useState<{ id: string; apodo: string }[]>([]);

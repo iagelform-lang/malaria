@@ -34,6 +34,7 @@ import type { Asistencia, Confirmacion, Juntada, Perfil } from "@/lib/tipos";
 import { Avatar } from "@/components/ui/Avatar";
 import { SeccionConsumos } from "@/components/juntada/SeccionConsumos";
 import { EditarJuntada } from "@/components/juntada/EditarJuntada";
+import { nivelDe } from "@/lib/juegos";
 import { SeccionLlevar } from "@/components/juntada/SeccionLlevar";
 import { SeccionFotos } from "@/components/juntada/SeccionFotos";
 import { SeccionJuegos } from "@/components/juntada/SeccionJuegos";
@@ -249,8 +250,8 @@ export function VistaJuntada({
             {estado.texto}
           </span>
           <span className="w-fit rounded-full bg-amber-400/15 px-2.5 py-0.5 text-xs font-medium text-amber-300">
-            ⭐ {juntada.puntos ?? 1}{" "}
-            {(juntada.puntos ?? 1) === 1 ? "punto" : "puntos"}
+            ⭐ {nivelDe(juntada.puntos ?? 10).nombre} · {juntada.puntos ?? 10}{" "}
+            pts
           </span>
         </div>
         <h1 className="text-3xl font-bold leading-tight">{juntada.nombre}</h1>

@@ -10,6 +10,7 @@ export type FechaEspecial = {
   lugar?: string | null;
   creado_por?: string | null;
   duracion_dias?: number | null;
+  puntos?: number | null;
 };
 
 export type Proxima = FechaEspecial & {

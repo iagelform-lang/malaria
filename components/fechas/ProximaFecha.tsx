@@ -95,6 +95,7 @@ function Tarjeta({
           <p className={`flex flex-wrap items-center gap-x-1 text-xs ${festejo ? "" : "text-texto-suave"}`}>
             {nombreRango(p)}
             {cumple && <span>· cumplen {cumple}</span>}
+            <span>· ⭐ {p.puntos ?? 10} pts</span>
             {p.lugar && (
               <span className="flex items-center gap-0.5">
                 · <MapPin className="size-3" /> {p.lugar}

@@ -1,3 +1,5 @@
+import { rankingPuntos } from "@/lib/juegos";
+
 // Cálculo del "Malaria Wrapped": el resumen del año del grupo. Todo da 0 / null si no hay datos.
 
 export type JW = {
@@ -82,6 +84,9 @@ export function calcularWrapped(
   gastos: GW[],
   partidas: PW[] = [],
   jugadores: JugW[] = [],
+  eventos: { id: number; puntos: number | null }[] = [],
+  voyEventos: { fecha_id: number; perfil_id: string; dia: string }[] = [],
+  hoy = "9999-12-31",
 ): Wrapped {
   const ids = new Set(juntadas.map((j) => j.id));
   const asis = asistencias.filter((a) => ids.has(a.juntada_id));
@@ -160,13 +165,10 @@ export function calcularWrapped(
       victorias.set(j.perfil_id, (victorias.get(j.perfil_id) ?? 0) + 1);
   }
 
-  const puntosDe = new Map(juntadas.map((j) => [j.id, Number(j.puntos) || 1]));
-  const tablaPuntos = [...fue.entries()]
-    .map(([id, s]) => ({
-      id,
-      valor: [...s].reduce((t, jid) => t + (puntosDe.get(jid) ?? 1), 0),
-    }))
-    .sort((a, b) => b.valor - a.valor);
+  const tablaPuntos = rankingPuntos(juntadas, asis, eventos, voyEventos, hoy).map((f) => ({
+    id: f.perfil_id,
+    valor: f.puntos,
+  }));
 
   return {
     puntos: tablaPuntos,

@@ -2,7 +2,7 @@ import { Star } from "lucide-react";
 
 type Fila = { perfil_id: string; puntos: number; juntadas: number };
 
-/** Tabla de puntos: cada uno suma los puntos de las juntadas a las que fue (normal 1, media 5, importante 10) */
+/** Tabla de puntos: juntadas a las que fue (normal 10, salida 30, asado 50, viaje/cumple 70) + eventos donde marcó Voy */
 export function RankingPuntos({
   filas,
   apodos,
@@ -20,8 +20,8 @@ export function RankingPuntos({
       <div className="flex flex-col gap-1 rounded-2xl border border-borde bg-superficie p-3">
         {filas.length === 0 && (
           <p className="p-2 text-sm text-texto-suave">
-            Todos en 0. Ir a una juntada normal suma 1 punto, a una media 5 y a
-            una importante (ej: cumpleaños) 10.
+            Todos en 0. Ir a una juntada normal suma 10 puntos, a una salida
+            30, a un asado 50 y a un viaje o cumpleaños 70.
           </p>
         )}
         {filas.map((f, i) => (
@@ -36,7 +36,7 @@ export function RankingPuntos({
               {apodos[f.perfil_id] ?? "?"}
             </span>
             <span className="text-xs text-texto-suave">
-              {f.juntadas} {f.juntadas === 1 ? "juntada" : "juntadas"}
+              {f.juntadas} {f.juntadas === 1 ? "vez" : "veces"}
             </span>
             <span className="w-14 text-right text-base font-black tabular-nums text-acento">
               {f.puntos}
