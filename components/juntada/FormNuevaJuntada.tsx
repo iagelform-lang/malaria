@@ -192,7 +192,7 @@ export function FormNuevaJuntada() {
           <span className="flex-1 text-sm">
             <b>Votar día y hora.</b>{" "}
             {votarFecha
-              ? "Cada uno marca las fechas que puede y se define sola cuando la mayoría coincide."
+              ? "Cada uno marca las fechas que puede y se define sola cuando 3 eligen la misma."
               : "Apagado: la juntada queda con una sola fecha fija."}
           </span>
           <span

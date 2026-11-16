@@ -174,7 +174,7 @@ export function VistaSondeo({
         </h2>
         <p className="-mt-1 text-xs text-texto-suave">
           Se define sola cuando una fecha llega a{" "}
-          <b className="text-acento">{mayoria} votos</b> (la mayoría del grupo).
+          <b className="text-acento">{mayoria} votos</b>. Después, cada uno confirma si va.
         </p>
         {opciones.map((o) => {
           const quienes = conteo(o.id);
