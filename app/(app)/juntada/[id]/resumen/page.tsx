@@ -7,6 +7,7 @@ import { duracion, fechaYHora, hora } from "@/lib/tiempo";
 import { calcularCuentas, pesos } from "@/lib/cuentas";
 import { CopiarAlias } from "@/components/juntada/CopiarAlias";
 import { SeccionFotos } from "@/components/juntada/SeccionFotos";
+import { SeccionFrases } from "@/components/juntada/SeccionFrases";
 import { TIPOS } from "@/lib/consumos";
 import { Avatar } from "@/components/ui/Avatar";
 import type { Asistencia, Confirmacion, Juntada } from "@/lib/tipos";
@@ -152,6 +153,13 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
 
       {/* Quién fue */}
       <SeccionFotos juntadaId={id} uid={uid ?? ""} puedeGestionar={false} puedeSubir={false} />
+      <SeccionFrases
+        juntadaId={id}
+        uid={uid ?? ""}
+        puedeGestionar={false}
+        perfiles={perfs ?? []}
+        puedeCargar={false}
+      />
 
       <Seccion titulo={`Quién fue · ${personas.length}`}>
         {personas.length === 0 && <p className="text-sm text-texto-suave">No se registró nadie.</p>}

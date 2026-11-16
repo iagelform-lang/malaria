@@ -63,6 +63,7 @@ async function Contenido({
     { data: jgs },
     { data: evs },
     { data: voyEv },
+    { data: frs },
   ] = await Promise.all([
     supabase
       .from("juntadas")
@@ -81,6 +82,7 @@ async function Contenido({
     supabase.from("partida_jugadores").select("partida_id, perfil_id, gano"),
     supabase.from("fechas_especiales").select("id, puntos"),
     supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
+    supabase.from("frases").select("juntada_id, perfil_id, texto, frase_votos(perfil_id)"),
   ]);
 
   const delAnio = ((js as JW[]) ?? []).filter((j) =>
@@ -97,6 +99,12 @@ async function Contenido({
     (voyEv ?? []).filter((v) => v.dia.startsWith(String(anio))),
     hoyBA,
   );
+  const idsAnio = new Set(delAnio.map((j) => j.id));
+  const fraseAnio = (
+    (frs ?? []) as { juntada_id: string; perfil_id: string; texto: string; frase_votos: unknown[] }[]
+  )
+    .filter((f) => idsAnio.has(f.juntada_id))
+    .sort((a, b) => b.frase_votos.length - a.frase_votos.length)[0];
   const apodo = (p: Persona | null) =>
     p ? ((ps ?? []).find((x) => x.id === p.id)?.apodo ?? "?") : "Nadie todavía";
   const minutos = (m: number) =>
@@ -228,6 +236,20 @@ async function Contenido({
           }
         />
       </div>
+
+      <Tarjeta emoji="💬" titulo="La frase del año">
+        {fraseAnio ? (
+          <p>
+            <span className="italic">“{fraseAnio.texto}”</span>
+            <span className="text-texto-suave">
+              {" "}
+              — {apodo({ id: fraseAnio.perfil_id, valor: 0 })} · ❤️ {fraseAnio.frase_votos.length}
+            </span>
+          </p>
+        ) : (
+          <p className="text-texto-suave">Todavía nadie cargó frases</p>
+        )}
+      </Tarjeta>
 
       <Tarjeta emoji="🌙" titulo="La juntada más larga">
         {w.masLarga ? (

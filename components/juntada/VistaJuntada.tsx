@@ -38,6 +38,7 @@ import { nivelDe } from "@/lib/juegos";
 import { SeccionLlevar } from "@/components/juntada/SeccionLlevar";
 import { SeccionFotos } from "@/components/juntada/SeccionFotos";
 import { SeccionJuegos } from "@/components/juntada/SeccionJuegos";
+import { SeccionFrases } from "@/components/juntada/SeccionFrases";
 
 type Props = {
   juntadaInicial: Juntada;
@@ -579,6 +580,10 @@ export function VistaJuntada({
           perfiles={perfiles}
           idsQueVinieron={[...idsQueVinieron]}
         />
+      )}
+
+      {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
+        <SeccionFrases juntadaId={id} uid={uid} puedeGestionar={puedeGestionar} perfiles={perfiles} puedeCargar />
       )}
 
       {(juntada.estado === "activa" || juntada.estado === "finalizada") && (

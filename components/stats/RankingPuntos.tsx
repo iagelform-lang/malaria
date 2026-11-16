@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Star } from "lucide-react";
 
 type Fila = { perfil_id: string; puntos: number; juntadas: number };
@@ -45,9 +46,9 @@ export function RankingPuntos({
             <span className="w-6 text-texto-suave">
               {f.puntos > 0 && puesto(i) < 3 ? ["🥇", "🥈", "🥉"][puesto(i)] : `${puesto(i) + 1}.`}
             </span>
-            <span className="flex-1 truncate font-medium">
+            <Link href={`/persona/${f.perfil_id}`} className="flex-1 truncate font-medium">
               {apodos[f.perfil_id] ?? "?"}
-            </span>
+            </Link>
             <span className="text-xs text-texto-suave">
               {f.juntadas} {f.juntadas === 1 ? "vez" : "veces"}
             </span>

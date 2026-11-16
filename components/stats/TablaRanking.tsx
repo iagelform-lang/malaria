@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { duracion } from "@/lib/tiempo";
 import type { Estadistica } from "@/lib/tipos";
 import { Avatar } from "@/components/ui/Avatar";
@@ -50,9 +51,9 @@ export function TablaRanking({ stats, uid }: { stats: Estadistica[]; uid: string
           <div className="flex items-center gap-3">
             <span className="w-5 text-center font-mono text-texto-suave">{i + 1}</span>
             <Avatar apodo={s.apodo} />
-            <p className="flex-1 font-semibold">
+            <Link href={`/persona/${s.perfil_id}`} className="flex-1 font-semibold">
               {s.apodo} {s.perfil_id === uid && <span className="text-xs text-acento">(vos)</span>}
-            </p>
+            </Link>
             <p className="font-mono text-lg font-bold text-acento">
               {orden === "horas" && `${s.horas_totales.toLocaleString("es-AR")} h`}
               {orden === "asistencia" && `${s.pct_asistencia ?? 0}%`}

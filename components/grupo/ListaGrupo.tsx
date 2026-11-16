@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, ShieldCheck, ShieldOff, UserCheck, UserX, X } from "lucide-react";
+import { ChevronRight, Loader2, ShieldCheck, ShieldOff, UserCheck, UserX, X } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { mensajeError } from "@/lib/errores";
 import { fechaCorta } from "@/lib/tiempo";
@@ -64,13 +65,14 @@ export function ListaGrupo({ miembros, uid, esAdmin }: { miembros: Miembro[]; ui
 
     return (
       <div className={`flex flex-col gap-3 rounded-2xl bg-superficie p-3 ${esYo ? "ring-1 ring-acento/50" : ""}`}>
+        <div className="flex items-center gap-2">
         <button
           disabled={!puedeTocar}
           onClick={() => {
             setAbierto(abierto === m.id ? null : m.id);
             setConfirmando(null);
           }}
-          className="flex items-center gap-3 text-left"
+          className="flex min-w-0 flex-1 items-center gap-3 text-left"
         >
           <Avatar apodo={m.apodo} activo={m.presente} apagado={!m.activo} />
           <div className="min-w-0 flex-1">
@@ -89,6 +91,13 @@ export function ListaGrupo({ miembros, uid, esAdmin }: { miembros: Miembro[]; ui
             </p>
           </div>
         </button>
+        <Link
+          href={`/persona/${m.id}`}
+          className="flex shrink-0 items-center gap-0.5 rounded-full bg-fondo px-2.5 py-1 text-xs text-texto-suave ring-1 ring-borde"
+        >
+          Perfil <ChevronRight className="size-3.5" />
+        </Link>
+        </div>
 
         {puedeTocar && abierto === m.id && (
           <div className="flex flex-wrap gap-2 border-t border-borde pt-3">
