@@ -11,8 +11,17 @@ export type JW = {
   finalizada_en: string | null;
 };
 export type AW = { juntada_id: string; perfil_id: string; entrada: string };
-export type CW = { juntada_id: string; perfil_id: string; va: boolean; hora_prometida: string | null };
-export type GW = { juntada_id: string; monto: number | string | null; pagado_por: string | null };
+export type CW = {
+  juntada_id: string;
+  perfil_id: string;
+  va: boolean;
+  hora_prometida: string | null;
+};
+export type GW = {
+  juntada_id: string;
+  monto: number | string | null;
+  pagado_por: string | null;
+};
 
 export type Persona = { id: string; valor: number };
 
@@ -29,11 +38,16 @@ export type Wrapped = {
   comida: { texto: string; veces: number } | null;
   lugar: { texto: string; veces: number } | null;
   masLarga: { nombre: string; horas: number } | null;
+  campeon: Persona | null; // el que más partidas ganó
 };
+export type PW = { id: number; juntada_id: string };
+export type JugW = { partida_id: number; perfil_id: string; gano: boolean };
 
 /** ¿La juntada fue en ese año (hora de Buenos Aires)? */
 export function esDelAnio(iso: string, anio: number) {
-  return new Date(new Date(iso).getTime() - 3 * 3600_000).getUTCFullYear() === anio;
+  return (
+    new Date(new Date(iso).getTime() - 3 * 3600_000).getUTCFullYear() === anio
+  );
 }
 
 function masRepetido(valores: (string | null)[]) {
@@ -42,7 +56,10 @@ function masRepetido(valores: (string | null)[]) {
     if (!v?.trim()) continue;
     const clave = v.trim().toLowerCase();
     const prev = cuenta.get(clave);
-    cuenta.set(clave, { texto: prev?.texto ?? v.trim(), veces: (prev?.veces ?? 0) + 1 });
+    cuenta.set(clave, {
+      texto: prev?.texto ?? v.trim(),
+      veces: (prev?.veces ?? 0) + 1,
+    });
   }
   return [...cuenta.values()].sort((a, b) => b.veces - a.veces)[0] ?? null;
 }
@@ -50,12 +67,20 @@ function masRepetido(valores: (string | null)[]) {
 function maximo(mapa: Map<string, number>, menor = false): Persona | null {
   let mejor: Persona | null = null;
   for (const [id, valor] of mapa) {
-    if (!mejor || (menor ? valor < mejor.valor : valor > mejor.valor)) mejor = { id, valor };
+    if (!mejor || (menor ? valor < mejor.valor : valor > mejor.valor))
+      mejor = { id, valor };
   }
   return mejor;
 }
 
-export function calcularWrapped(juntadas: JW[], asistencias: AW[], confirmaciones: CW[], gastos: GW[]): Wrapped {
+export function calcularWrapped(
+  juntadas: JW[],
+  asistencias: AW[],
+  confirmaciones: CW[],
+  gastos: GW[],
+  partidas: PW[] = [],
+  jugadores: JugW[] = [],
+): Wrapped {
   const ids = new Set(juntadas.map((j) => j.id));
   const asis = asistencias.filter((a) => ids.has(a.juntada_id));
   const conf = confirmaciones.filter((c) => ids.has(c.juntada_id));
@@ -66,9 +91,15 @@ export function calcularWrapped(juntadas: JW[], asistencias: AW[], confirmacione
   let masLarga: Wrapped["masLarga"] = null;
   for (const j of juntadas) {
     if (!j.iniciada_en || !j.finalizada_en) continue;
-    const h = Math.max(0, (new Date(j.finalizada_en).getTime() - new Date(j.iniciada_en).getTime()) / 3_600_000);
+    const h = Math.max(
+      0,
+      (new Date(j.finalizada_en).getTime() -
+        new Date(j.iniciada_en).getTime()) /
+        3_600_000,
+    );
     horas += h;
-    if (!masLarga || h > masLarga.horas) masLarga = { nombre: j.nombre, horas: h };
+    if (!masLarga || h > masLarga.horas)
+      masLarga = { nombre: j.nombre, horas: h };
   }
 
   // a cuántas fue cada uno, y su primera llegada en cada juntada
@@ -98,20 +129,37 @@ export function calcularWrapped(juntadas: JW[], asistencias: AW[], confirmacione
     const min = (t - new Date(c.hora_prometida).getTime()) / 60_000;
     demoras.set(c.perfil_id, [...(demoras.get(c.perfil_id) ?? []), min]);
   }
-  const promedio = new Map([...demoras].map(([id, v]) => [id, Math.round(v.reduce((s, x) => s + x, 0) / v.length)]));
+  const promedio = new Map(
+    [...demoras].map(([id, v]) => [
+      id,
+      Math.round(v.reduce((s, x) => s + x, 0) / v.length),
+    ]),
+  );
 
   const anfitriones = new Map<string, number>();
-  for (const j of juntadas) anfitriones.set(j.anfitrion_id, (anfitriones.get(j.anfitrion_id) ?? 0) + 1);
+  for (const j of juntadas)
+    anfitriones.set(j.anfitrion_id, (anfitriones.get(j.anfitrion_id) ?? 0) + 1);
 
   const pagado = new Map<string, number>();
   let gastoTotal = 0;
   for (const g of gas) {
     const m = Number(g.monto ?? 0) || 0;
     gastoTotal += m;
-    if (g.pagado_por && m > 0) pagado.set(g.pagado_por, (pagado.get(g.pagado_por) ?? 0) + m);
+    if (g.pagado_por && m > 0)
+      pagado.set(g.pagado_por, (pagado.get(g.pagado_por) ?? 0) + m);
+  }
+
+  const partidasDelAnio = new Set(
+    partidas.filter((p) => ids.has(p.juntada_id)).map((p) => p.id),
+  );
+  const victorias = new Map<string, number>();
+  for (const j of jugadores) {
+    if (j.gano && partidasDelAnio.has(j.partida_id))
+      victorias.set(j.perfil_id, (victorias.get(j.perfil_id) ?? 0) + 1);
   }
 
   return {
+    campeon: maximo(victorias),
     juntadas: juntadas.length,
     horas: Math.round(horas),
     asistentes,
@@ -123,6 +171,8 @@ export function calcularWrapped(juntadas: JW[], asistencias: AW[], confirmacione
     gastoTotal,
     comida: masRepetido(juntadas.map((j) => j.comida)),
     lugar: masRepetido(juntadas.map((j) => j.lugar)),
-    masLarga: masLarga ? { ...masLarga, horas: Math.round(masLarga.horas * 10) / 10 } : null,
+    masLarga: masLarga
+      ? { ...masLarga, horas: Math.round(masLarga.horas * 10) / 10 }
+      : null,
   };
 }

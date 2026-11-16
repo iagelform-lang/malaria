@@ -29,6 +29,7 @@ import { SeccionConsumos } from "@/components/juntada/SeccionConsumos";
 import { EditarJuntada } from "@/components/juntada/EditarJuntada";
 import { SeccionLlevar } from "@/components/juntada/SeccionLlevar";
 import { SeccionFotos } from "@/components/juntada/SeccionFotos";
+import { SeccionJuegos } from "@/components/juntada/SeccionJuegos";
 
 type Props = {
   juntadaInicial: Juntada;
@@ -452,6 +453,16 @@ export function VistaJuntada({
 
       {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
         <SeccionFotos juntadaId={id} uid={uid} puedeGestionar={puedeGestionar} puedeSubir />
+      )}
+
+      {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
+        <SeccionJuegos
+          juntadaId={id}
+          uid={uid}
+          puedeGestionar={puedeGestionar}
+          perfiles={perfiles}
+          idsQueVinieron={[...idsQueVinieron]}
+        />
       )}
 
       {(juntada.estado === "activa" || juntada.estado === "finalizada") && (

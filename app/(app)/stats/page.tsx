@@ -6,6 +6,8 @@ import { calcularInsignias } from "@/lib/insignias";
 import type { Estadistica } from "@/lib/tipos";
 import { TablaRanking } from "@/components/stats/TablaRanking";
 import { SeccionGastos } from "@/components/stats/SeccionGastos";
+import { SeccionJuegos } from "@/components/stats/SeccionJuegos";
+import { rankingJuegos, type JugadorR, type PartidaR } from "@/lib/juegos";
 import type { ConsumoG } from "@/lib/gastos";
 import { aNumero, normalizarEstadistica } from "@/lib/numeros";
 
@@ -24,7 +26,10 @@ export default function StatsPage() {
         fallback={
           <div className="grid grid-cols-2 gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-36 animate-pulse rounded-2xl bg-superficie" />
+              <div
+                key={i}
+                className="h-36 animate-pulse rounded-2xl bg-superficie"
+              />
             ))}
           </div>
         }
@@ -37,16 +42,30 @@ export default function StatsPage() {
 
 async function Contenido() {
   const { supabase, uid } = await usuarioActual();
-  const [{ data }, { data: jFin }, { data: asis }, { data: excl }, { data: cons }, { data: perfs }] = await Promise.all(
-    [
-      supabase.from("v_estadisticas").select("*"),
-      supabase.from("juntadas").select("id, nombre, inicio_programado").eq("estado", "finalizada"),
-      supabase.from("asistencias").select("juntada_id, perfil_id"),
-      supabase.from("exclusiones_gasto").select("juntada_id, perfil_id"),
-      supabase.from("consumos").select("juntada_id, tipo, descripcion, monto, pagado_por"),
-      supabase.from("perfiles").select("id, apodo"),
-    ],
-  );
+  const [
+    { data },
+    { data: jFin },
+    { data: asis },
+    { data: excl },
+    { data: cons },
+    { data: perfs },
+    { data: parts },
+    { data: jugs },
+  ] = await Promise.all([
+    supabase.from("v_estadisticas").select("*"),
+    supabase
+      .from("juntadas")
+      .select("id, nombre, inicio_programado")
+      .eq("estado", "finalizada"),
+    supabase.from("asistencias").select("juntada_id, perfil_id"),
+    supabase.from("exclusiones_gasto").select("juntada_id, perfil_id"),
+    supabase
+      .from("consumos")
+      .select("juntada_id, tipo, descripcion, monto, pagado_por"),
+    supabase.from("perfiles").select("id, apodo"),
+    supabase.from("partidas").select("id, juego"),
+    supabase.from("partida_jugadores").select("partida_id, perfil_id, gano"),
+  ]);
   const finalizadas = jFin?.length ?? 0;
   const idsFin = new Set((jFin ?? []).map((j) => j.id));
   const apodos = Object.fromEntries((perfs ?? []).map((p) => [p.id, p.apodo]));
@@ -64,33 +83,48 @@ async function Contenido() {
       )}
       <div className="grid grid-cols-2 gap-3">
         <Dato valor={String(finalizadas)} etiqueta="juntadas" />
-        <Dato valor={`${Math.round(horasGrupo).toLocaleString("es-AR")} h`} etiqueta="juntos (sumadas)" />
+        <Dato
+          valor={`${Math.round(horasGrupo).toLocaleString("es-AR")} h`}
+          etiqueta="juntos (sumadas)"
+        />
       </div>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Insignias</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">
+          Insignias
+        </h2>
         <div className="grid grid-cols-2 gap-3">
           {insignias.map((i) => (
             <div
               key={i.clave}
               className={`flex flex-col gap-1 rounded-2xl border p-4 ${
-                i.clave === "fantasma" ? "border-violet-500/30 bg-violet-500/10" : "border-borde bg-superficie"
+                i.clave === "fantasma"
+                  ? "border-violet-500/30 bg-violet-500/10"
+                  : "border-borde bg-superficie"
               } ${i.clave === "chamuyero" ? "col-span-2" : ""}`}
             >
               <span className="text-3xl">{i.emoji}</span>
               <p className="text-sm font-semibold">{i.titulo}</p>
               {i.ganadores.length ? (
                 <>
-                  <p className="text-xl font-bold leading-tight text-acento">{i.ganadores.join(" y ")}</p>
+                  <p className="text-xl font-bold leading-tight text-acento">
+                    {i.ganadores.join(" y ")}
+                  </p>
                   <p className="text-xs text-texto-suave">{i.valor}</p>
                 </>
               ) : (
                 <>
-                  <p className="text-xl font-bold leading-tight text-texto-suave">Nadie todavía</p>
-                  <p className="text-xs text-texto-suave">{i.pendiente ?? i.valor}</p>
+                  <p className="text-xl font-bold leading-tight text-texto-suave">
+                    Nadie todavía
+                  </p>
+                  <p className="text-xs text-texto-suave">
+                    {i.pendiente ?? i.valor}
+                  </p>
                 </>
               )}
-              <p className="mt-auto pt-2 text-[11px] leading-snug text-texto-suave">{i.descripcion}</p>
+              <p className="mt-auto pt-2 text-[11px] leading-snug text-texto-suave">
+                {i.descripcion}
+              </p>
             </div>
           ))}
         </div>
@@ -102,9 +136,20 @@ async function Contenido() {
         exclusiones={(excl ?? []).filter((e) => idsFin.has(e.juntada_id))}
         consumos={((cons ?? []) as ConsumoG[])
           .filter((c) => idsFin.has(c.juntada_id))
-          .map((c) => ({ ...c, monto: c.monto == null ? null : aNumero(c.monto) }))}
+          .map((c) => ({
+            ...c,
+            monto: c.monto == null ? null : aNumero(c.monto),
+          }))}
         apodos={apodos}
         uid={uid ?? ""}
+      />
+
+      <SeccionJuegos
+        {...rankingJuegos(
+          (parts as PartidaR[]) ?? [],
+          (jugs as JugadorR[]) ?? [],
+        )}
+        apodos={apodos}
       />
 
       <TablaRanking stats={stats} uid={uid ?? ""} />
