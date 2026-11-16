@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Dices, Loader2, Plus, Star, Trash2, X } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { mensajeError } from "@/lib/errores";
@@ -23,12 +24,14 @@ export function SeccionJuegos({
   puedeGestionar,
   perfiles,
   idsQueVinieron,
+  enCurso = false,
 }: {
   juntadaId: string;
   uid: string;
   puedeGestionar: boolean;
   perfiles: Perfil[];
   idsQueVinieron: string[];
+  enCurso?: boolean;
 }) {
   const supabase = useMemo(() => crearClienteNavegador(), []);
   const { juegos: catalogo } = useJuegos();
@@ -100,6 +103,16 @@ export function SeccionJuegos({
           </button>
         )}
       </div>
+
+      {enCurso && puedeCargar && !abierto && (
+        <Link
+          href={`/juntada/${juntadaId}/bid`}
+          className="flex items-center justify-between rounded-xl bg-superficie px-3 py-2.5 ring-1 ring-acento/40"
+        >
+          <span className="font-semibold">🔨 Jugar Bid Womens</span>
+          <span className="text-xs text-texto-suave">subasta + torneo →</span>
+        </Link>
+      )}
 
       {abierto && (
         <FormPartida

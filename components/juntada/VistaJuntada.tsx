@@ -579,6 +579,7 @@ export function VistaJuntada({
           puedeGestionar={puedeGestionar}
           perfiles={perfiles}
           idsQueVinieron={[...idsQueVinieron]}
+          enCurso={juntada.estado === "activa"}
         />
       )}
 
