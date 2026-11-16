@@ -8,6 +8,8 @@ type Props = {
   apodos: Record<string, string>;
   catalogo?: Pick<Juego, "nombre" | "emoji">[];
   titulo?: boolean;
+  /** campeón de los juegos por puntos de torneos (si no hay, nadie) */
+  campeonPuntos?: { perfil_id: string; puntos: number } | null;
 };
 
 /** Stats de juegos: ranking general de victorias y uno por juego. Sin partidas, todo en 0. */
@@ -18,8 +20,10 @@ export function SeccionJuegos({
   apodos,
   catalogo = [],
   titulo = true,
+  campeonPuntos = null,
 }: Props) {
-  const campeon = total[0];
+  void total;
+  const campeon = campeonPuntos;
   return (
     <section className="flex flex-col gap-3">
       {titulo && (
@@ -37,8 +41,8 @@ export function SeccionJuegos({
             {campeon ? (apodos[campeon.perfil_id] ?? "?") : "Nadie todavía"}
           </p>
           <p className="text-xs text-texto-suave">
-            👑 el campeón ·{" "}
-            {campeon ? `${campeon.ganadas} ganadas` : "0 ganadas"}
+            👑 campeón de los juegos ·{" "}
+            {campeon ? `${campeon.puntos} pts` : "0 pts"}
           </p>
         </div>
       </div>

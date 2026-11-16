@@ -14,6 +14,8 @@ import {
   type PartidaR,
 } from "@/lib/juegos";
 import { RankingPuntos } from "@/components/stats/RankingPuntos";
+import { TablaJuegos } from "@/components/stats/TablaJuegos";
+import { tablaTorneos } from "@/lib/torneo";
 import type { ConsumoG } from "@/lib/gastos";
 import { aNumero, normalizarEstadistica } from "@/lib/numeros";
 
@@ -59,6 +61,7 @@ async function Contenido() {
     { data: jugs },
     { data: eventos },
     { data: voyEv },
+    { data: posTorneos },
   ] = await Promise.all([
     supabase.from("v_estadisticas").select("*"),
     supabase
@@ -75,6 +78,7 @@ async function Contenido() {
     supabase.from("partida_jugadores").select("partida_id, perfil_id, gano"),
     supabase.from("fechas_especiales").select("id, puntos"),
     supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
+    supabase.from("torneo_posiciones").select("perfil_id, puesto, puntos"),
   ]);
   // hoy en Buenos Aires: los eventos suman recién cuando ya pasaron
   // eslint-disable-next-line react-hooks/purity
@@ -179,6 +183,11 @@ async function Contenido() {
           (parts as PartidaR[]) ?? [],
           (jugs as JugadorR[]) ?? [],
         )}
+        apodos={apodos}
+        campeonPuntos={tablaTorneos((posTorneos ?? []).filter((p) => !ocultos.has(p.perfil_id)))[0] ?? null}
+      />
+      <TablaJuegos
+        filas={tablaTorneos((posTorneos ?? []).filter((p) => !ocultos.has(p.perfil_id)))}
         apodos={apodos}
       />
 

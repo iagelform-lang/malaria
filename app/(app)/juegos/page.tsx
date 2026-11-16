@@ -11,6 +11,8 @@ import {
 } from "@/lib/juegos";
 import { CatalogoJuegos } from "@/components/juegos/CatalogoJuegos";
 import { SeccionJuegos } from "@/components/stats/SeccionJuegos";
+import { TablaJuegos } from "@/components/stats/TablaJuegos";
+import { tablaTorneos } from "@/lib/torneo";
 
 export default function JuegosPage() {
   return (
@@ -46,6 +48,7 @@ async function Contenido() {
     { data: partidas },
     { data: perfs },
     { data: activas },
+    { data: posTorneos },
   ] = await Promise.all([
     supabase
       .from("juegos")
@@ -64,8 +67,10 @@ async function Contenido() {
       .select("id, nombre")
       .eq("estado", "activa")
       .limit(1),
+    supabase.from("torneo_posiciones").select("perfil_id, puesto, puntos"),
   ]);
   const catalogo = (juegos as Juego[]) ?? [];
+  const tablaJ = tablaTorneos(posTorneos ?? []);
   const lista = (partidas as unknown as PartidaLista[]) ?? [];
   const apodos = Object.fromEntries((perfs ?? []).map((p) => [p.id, p.apodo]));
   const ranking = rankingJuegos(
@@ -123,11 +128,13 @@ async function Contenido() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">
           Rankings
         </h2>
+        <TablaJuegos filas={tablaJ} apodos={apodos} />
         <SeccionJuegos
           {...ranking}
           apodos={apodos}
           catalogo={catalogo}
           titulo={false}
+          campeonPuntos={tablaJ[0] ?? null}
         />
       </section>
 

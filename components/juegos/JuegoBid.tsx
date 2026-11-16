@@ -4,6 +4,16 @@ import { useMemo, useState } from "react";
 import { Crown, Gavel, Loader2, Minus, Plus, Shuffle, Trophy, Undo2 } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { mensajeError } from "@/lib/errores";
+import {
+  MAX_JUGADORES,
+  posiciones,
+  proximoPartido,
+  puntosDePuesto,
+  registrarGanador,
+  sortearTorneo,
+  type Partido,
+  type Torneo,
+} from "@/lib/torneo";
 
 /*
  * Bid Womens, jugado en un solo celular (el que maneja la partida):
@@ -11,7 +21,8 @@ import { mensajeError } from "@/lib/errores";
  *  2. Cada duelo es 1 vs 1: los que no juegan cargan 10 nombres, la app los sortea de a uno
  *     y se subastan con $15 por jugador hasta tener 5 cada uno.
  *  3. Al mejor de 5: cada uno presenta una de las suyas y los que miran eligen cuál gana.
- *  4. Torneo con cuadro de ganadores y de perdedores (al segundo duelo perdido, afuera).
+ *  4. Torneo eliminatorio sorteado: (cuartos) → semis → tercer puesto → final.
+ *     Puntos para el campeón de los juegos: 1º 100 · 2º 55 · 3º 40 · 4º 25 · 5º a 8º 10.
  * Los nombres NUNCA se guardan: viven solo en este celular mientras dura el duelo.
  * Lo único que se guarda es la partida (quién jugó, quién ganó y el resultado).
  */
@@ -21,8 +32,6 @@ const POR_JUGADOR = 5;
 const NOMBRES = POR_JUGADOR * 2;
 const GANA = 3; // al mejor de 5
 
-type Cuadro = "ganadores" | "perdedores" | "final";
-type Duelo = { a: string; b: string; cuadro: Cuadro };
 type Compra = { nombre: string; jugador: string; precio: number };
 
 function mezclar<T>(lista: T[]) {
@@ -32,14 +41,6 @@ function mezclar<T>(lista: T[]) {
     [l[i], l[j]] = [l[j], l[i]];
   }
   return l;
-}
-
-/** Próximo duelo según cómo están los cuadros (o null si ya hay campeón) */
-function proximoDuelo(ganadores: string[], perdedores: string[]): Duelo | null {
-  if (ganadores.length >= 2) return { a: ganadores[0], b: ganadores[1], cuadro: "ganadores" };
-  if (perdedores.length >= 2) return { a: perdedores[0], b: perdedores[1], cuadro: "perdedores" };
-  if (ganadores.length === 1 && perdedores.length === 1) return { a: ganadores[0], b: perdedores[0], cuadro: "final" };
-  return null;
 }
 
 export function JuegoBid({
@@ -55,10 +56,8 @@ export function JuegoBid({
   // torneo
   const [elegidos, setElegidos] = useState<string[]>([]);
   const [empezado, setEmpezado] = useState(false);
-  const [ganadores, setGanadores] = useState<string[]>([]);
-  const [perdedores, setPerdedores] = useState<string[]>([]);
-  const [eliminados, setEliminados] = useState<string[]>([]);
-  const [campeon, setCampeon] = useState<string | null>(null);
+  const [torneo, setTorneo] = useState<Torneo | null>(null);
+  const [puestos, setPuestos] = useState<{ perfil: string; puesto: number }[] | null>(null);
 
   // duelo en curso (solo en memoria)
   const [fase, setFase] = useState<"nombres" | "subasta" | "duelo" | "resultado">("nombres");
@@ -72,13 +71,12 @@ export function JuegoBid({
   const [error, setError] = useState<string | null>(null);
   const [ultimo, setUltimo] = useState<{ ganador: string; perdedor: string; marcador: string } | null>(null);
 
-  const duelo = empezado && !campeon ? proximoDuelo(ganadores, perdedores) : null;
+  const partido = torneo && !puestos ? proximoPartido(torneo) : null;
+  const duelo = partido ? { a: partido.a!, b: partido.b!, ronda: partido.ronda } : null;
 
   function empezar() {
-    setGanadores(mezclar(elegidos));
-    setPerdedores([]);
-    setEliminados([]);
-    setCampeon(null);
+    setTorneo(sortearTorneo(elegidos));
+    setPuestos(null);
     setEmpezado(true);
     nuevoDuelo();
   }
@@ -152,24 +150,14 @@ export function JuegoBid({
     }
     setGuardando(false);
 
-    // mover en el cuadro
-    let g = ganadores.filter((x) => x !== ganador && x !== perdedor);
-    let p = perdedores.filter((x) => x !== ganador && x !== perdedor);
-    if (duelo.cuadro === "final") {
-      setCampeon(ganador);
-      g = [ganador];
-      p = [];
-      setEliminados((e) => [...e, perdedor]);
-    } else if (duelo.cuadro === "ganadores") {
-      g = [...g, ganador];
-      p = [...p, perdedor];
-    } else {
-      p = [...p, ganador];
-      setEliminados((e) => [...e, perdedor]);
+    // avanzar el cuadro
+    const nuevo = registrarGanador(torneo!, partido!, ganador);
+    setTorneo(nuevo);
+    const fin = posiciones(nuevo);
+    if (fin) {
+      setPuestos(fin);
+      await guardarTorneo(fin);
     }
-    setGanadores(g);
-    setPerdedores(p);
-    if (!proximoDuelo(g, p) && duelo.cuadro !== "final") setCampeon(g[0] ?? p[0] ?? ganador);
     setUltimo({ ganador, perdedor, marcador });
     // los nombres se descartan
     setNombres(Array(NOMBRES).fill(""));
@@ -177,6 +165,22 @@ export function JuegoBid({
     setCompras([]);
     setRondas([]);
     setFase("resultado");
+  }
+
+  async function guardarTorneo(fin: { perfil: string; puesto: number }[]) {
+    const { data, error } = await supabase
+      .from("torneos")
+      .insert({ juego: "Bid Womens", juntada_id: juntadaId })
+      .select("id")
+      .single();
+    if (error || !data) return setError(mensajeError(error ?? { message: "" }));
+    const { error: e2 } = await supabase.from("torneo_posiciones").insert(
+      fin.map((x) => ({ torneo_id: data.id, perfil_id: x.perfil, puesto: x.puesto, puntos: puntosDePuesto(x.puesto) })),
+    );
+    if (e2) {
+      await supabase.from("torneos").delete().eq("id", data.id);
+      setError(mensajeError(e2));
+    }
   }
 
   const chip = (activo: boolean) =>
@@ -204,41 +208,48 @@ export function JuegoBid({
           })}
         </div>
         <button
-          disabled={elegidos.length < 2}
+          disabled={elegidos.length < 2 || elegidos.length > MAX_JUGADORES}
           onClick={empezar}
           className="rounded-xl bg-acento py-3 font-bold text-black disabled:opacity-50"
         >
-          Armar torneo ({elegidos.length} jugadores)
+          {elegidos.length > MAX_JUGADORES
+            ? `Máximo ${MAX_JUGADORES} jugadores`
+            : `Sortear el cuadro (${elegidos.length} jugadores)`}
         </button>
       </div>
     );
   }
 
-  const Cuadros = (
-    <div className="grid grid-cols-3 gap-2 text-xs">
-      <Columna titulo="Ganadores" ids={ganadores} apodo={apodo} />
-      <Columna titulo="Perdedores" ids={perdedores} apodo={apodo} />
-      <Columna titulo="Afuera" ids={eliminados} apodo={apodo} tachado />
-    </div>
-  );
+  const Cuadros = torneo ? <VistaCuadro torneo={torneo} apodo={apodo} /> : null;
 
-  if (campeon && fase === "resultado") {
+  if (puestos && fase === "resultado") {
     return (
       <div className="flex flex-col items-center gap-4 text-center">
         <Crown className="size-16 text-amber-300" />
         <p className="text-sm uppercase tracking-widest text-texto-suave">Campeón de Bid Womens</p>
-        <p className="text-4xl font-black">{apodo(campeon)}</p>
+        <p className="text-4xl font-black">{apodo(puestos[0].perfil)}</p>
         {ultimo && (
           <p className="text-sm text-texto-suave">
             Final: {apodo(ultimo.ganador)} {ultimo.marcador} a {apodo(ultimo.perdedor)}
           </p>
         )}
-        {error && <p className="text-sm text-red-400">No se pudo guardar el último duelo: {error}</p>}
+        <div className="flex w-full flex-col gap-1 rounded-2xl bg-superficie p-3 text-left text-sm">
+          {puestos.map((x) => (
+            <div key={x.perfil} className="flex justify-between">
+              <span>
+                {x.puesto <= 4 ? `${x.puesto}º` : "5º-8º"} · {apodo(x.perfil)}
+              </span>
+              <b className="text-acento">+{puntosDePuesto(x.puesto)} pts</b>
+            </div>
+          ))}
+        </div>
+        {error && <p className="text-sm text-red-400">No se pudo guardar: {error}</p>}
         <div className="w-full">{Cuadros}</div>
         <button
           onClick={() => {
             setEmpezado(false);
-            setCampeon(null);
+            setTorneo(null);
+            setPuestos(null);
           }}
           className="w-full rounded-xl bg-acento py-3 font-bold text-black"
         >
@@ -269,7 +280,7 @@ export function JuegoBid({
   }
 
   if (!duelo) return null;
-  const etiqueta = { ganadores: "Cuadro de ganadores", perdedores: "Cuadro de perdedores", final: "Gran final" }[duelo.cuadro];
+  const etiqueta = duelo.ronda;
 
   return (
     <div className="flex flex-col gap-4">
@@ -435,29 +446,37 @@ export function JuegoBid({
   );
 }
 
-function Columna({
-  titulo,
-  ids,
-  apodo,
-  tachado = false,
-}: {
-  titulo: string;
-  ids: string[];
-  apodo: (id: string) => string;
-  tachado?: boolean;
-}) {
+function VistaCuadro({ torneo, apodo }: { torneo: Torneo; apodo: (id: string) => string }) {
+  const todas = [...torneo.rondas];
+  const extra = [torneo.tercero, torneo.final].filter(
+    (p): p is Partido => !!p && !todas.some((r) => r.includes(p)) && !!(p.a || p.b),
+  );
+  const nombre = (id: string | null) => (id ? apodo(id) : "libre");
+  const fila = (p: Partido, i: number) => (
+    <div key={i} className="flex items-center justify-between gap-2 rounded-lg bg-fondo px-2 py-1">
+      <span className={p.ganador && p.ganador === p.a ? "font-bold text-acento" : p.ganador ? "text-texto-suave line-through" : ""}>
+        {nombre(p.a)}
+      </span>
+      <span className="text-texto-suave">vs</span>
+      <span className={p.ganador && p.ganador === p.b ? "font-bold text-acento" : p.ganador ? "text-texto-suave line-through" : ""}>
+        {nombre(p.b)}
+      </span>
+    </div>
+  );
   return (
-    <div className="rounded-xl bg-superficie p-2">
-      <p className="mb-1 font-semibold text-texto-suave">{titulo}</p>
-      {ids.length ? (
-        ids.map((id) => (
-          <p key={id} className={`truncate ${tachado ? "text-texto-suave line-through" : ""}`}>
-            {apodo(id)}
-          </p>
-        ))
-      ) : (
-        <p className="text-texto-suave">—</p>
-      )}
+    <div className="flex flex-col gap-2 rounded-2xl bg-superficie p-3 text-xs">
+      {todas.map((r, i) => (
+        <div key={i} className="flex flex-col gap-1">
+          <p className="font-semibold text-texto-suave">{r[0]?.ronda}</p>
+          {r.map(fila)}
+        </div>
+      ))}
+      {extra.map((p) => (
+        <div key={p.ronda} className="flex flex-col gap-1">
+          <p className="font-semibold text-texto-suave">{p.ronda}</p>
+          {fila(p, 0)}
+        </div>
+      ))}
     </div>
   );
 }

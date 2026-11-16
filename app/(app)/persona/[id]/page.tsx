@@ -7,6 +7,7 @@ import { calcularInsignias } from "@/lib/insignias";
 import { normalizarEstadistica } from "@/lib/numeros";
 import { emojiJuego, nivelDe, rankingJuegos, rankingPuntos, type Juego, type JugadorR, type PartidaR } from "@/lib/juegos";
 import { fechaCorta } from "@/lib/tiempo";
+import { tablaTorneos } from "@/lib/torneo";
 import type { Estadistica } from "@/lib/tipos";
 import { CopiarAlias } from "@/components/juntada/CopiarAlias";
 
@@ -37,6 +38,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
     { data: voyEv },
     { data: partidas },
     { data: catalogo },
+    { data: posT },
     { data: frases },
   ] = await Promise.all([
     supabase.from("perfiles").select("id, apodo, rol, alias, oculto").eq("id", id).maybeSingle(),
@@ -48,6 +50,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
     supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
     supabase.from("partidas").select("id, juego, partida_jugadores(perfil_id, gano)"),
     supabase.from("juegos").select("nombre, emoji"),
+    supabase.from("torneo_posiciones").select("perfil_id, puesto, puntos"),
     supabase
       .from("frases")
       .select("id, texto, juntada_id, frase_votos(perfil_id)")
@@ -127,7 +130,10 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
         />
         <Dato valor={`${(mio?.horas_totales ?? 0).toLocaleString("es-AR")} h`} etiqueta="juntos" />
         <Dato valor={`${Math.round(mio?.pct_puntualidad ?? 0)}%`} etiqueta="puntualidad" />
-        <Dato valor={String(totalJuegos?.ganadas ?? 0)} etiqueta="partidas ganadas" />
+        <Dato
+          valor={String(tablaTorneos(posT ?? []).find((f) => f.perfil_id === id)?.puntos ?? 0)}
+          etiqueta={`pts de juegos · ${totalJuegos?.ganadas ?? 0} ganadas`}
+        />
         <Dato valor={String(mio?.veces_planto ?? 0)} etiqueta="plantones" />
       </div>
 

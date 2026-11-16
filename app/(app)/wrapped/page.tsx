@@ -14,6 +14,7 @@ import {
   type PW,
 } from "@/lib/wrapped";
 import { pesos } from "@/lib/cuentas";
+import { tablaTorneos } from "@/lib/torneo";
 
 export default function WrappedPage(props: PageProps<"/wrapped">) {
   return (
@@ -64,6 +65,7 @@ async function Contenido({
     { data: evs },
     { data: voyEv },
     { data: frs },
+    { data: trs },
   ] = await Promise.all([
     supabase
       .from("juntadas")
@@ -83,6 +85,7 @@ async function Contenido({
     supabase.from("fechas_especiales").select("id, puntos"),
     supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
     supabase.from("frases").select("juntada_id, perfil_id, texto, frase_votos(perfil_id)"),
+    supabase.from("torneos").select("creado_en, torneo_posiciones(perfil_id, puesto, puntos)"),
   ]);
 
   const delAnio = ((js as JW[]) ?? []).filter((j) =>
@@ -100,6 +103,12 @@ async function Contenido({
     hoyBA,
   );
   const idsAnio = new Set(delAnio.map((j) => j.id));
+  const campeonJuegos =
+    tablaTorneos(
+      ((trs ?? []) as { creado_en: string; torneo_posiciones: { perfil_id: string; puesto: number; puntos: number }[] }[])
+        .filter((t) => esDelAnio(t.creado_en, anio))
+        .flatMap((t) => t.torneo_posiciones),
+    )[0] ?? null;
   const fraseAnio = (
     (frs ?? []) as { juntada_id: string; perfil_id: string; texto: string; frase_votos: unknown[] }[]
   )
@@ -196,12 +205,8 @@ async function Contenido({
         <Mini
           emoji="👑"
           titulo="El campeón de los juegos"
-          nombre={apodo(w.campeon)}
-          dato={
-            w.campeon
-              ? `${w.campeon.valor} ${w.campeon.valor === 1 ? "partida ganada" : "partidas ganadas"}`
-              : "—"
-          }
+          nombre={apodo(campeonJuegos ? { id: campeonJuegos.perfil_id, valor: campeonJuegos.puntos } : null)}
+          dato={campeonJuegos ? `${campeonJuegos.puntos} pts · 🏆${campeonJuegos.titulos}` : "—"}
         />
         <Mini
           emoji="🏦"
