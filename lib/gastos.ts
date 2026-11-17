@@ -10,6 +10,7 @@ export type ConsumoG = {
   descripcion: string;
   monto: number | null;
   pagado_por: string | null;
+  entre?: string[] | null;
 };
 
 export type Periodo = "mes" | "anio" | "siempre";
@@ -69,7 +70,7 @@ export function resumirGastos(
     if (cuentas.total > 0) {
       for (const p of participantes) {
         const prev = cuotas.get(p) ?? { total: 0, n: 0 };
-        cuotas.set(p, { total: prev.total + cuentas.cuota, n: prev.n + 1 });
+        cuotas.set(p, { total: prev.total + (cuentas.aPagar.get(p) ?? 0), n: prev.n + 1 });
       }
       if (!masCara || cuentas.cuota > masCara.cuota)
         masCara = { nombre: j.nombre, cuota: cuentas.cuota, fecha: j.inicio_programado };

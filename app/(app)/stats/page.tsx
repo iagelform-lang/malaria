@@ -68,7 +68,8 @@ async function Contenido() {
     supabase.from("exclusiones_gasto").select("juntada_id, perfil_id"),
     supabase
       .from("consumos")
-      .select("juntada_id, tipo, descripcion, monto, pagado_por"),
+      .select("juntada_id, tipo, descripcion, monto, pagado_por, entre")
+      .not("juntada_id", "is", null),
     supabase.from("perfiles").select("id, apodo, activo, oculto"),
     supabase.from("partidas").select("id, juego"),
     supabase.from("fechas_especiales").select("id, puntos"),
@@ -189,6 +190,12 @@ async function Contenido() {
             titulo: "Gastos",
             contenido: (
               <>
+      <Link
+        href="/gastos"
+        className="flex items-center justify-between rounded-2xl bg-acento/10 px-4 py-3 text-sm font-semibold text-acento ring-1 ring-acento/30"
+      >
+        💸 Ver quién le debe a quién y las cuentas sueltas <span>→</span>
+      </Link>
       <SeccionGastos
         juntadas={jFin ?? []}
         asistencias={(asis ?? []).filter((a) => idsFin.has(a.juntada_id))}

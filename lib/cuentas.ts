@@ -1,36 +1,80 @@
-// Cuentas de una juntada: total, cuota por persona, saldos y quién le debe a quién.
-// Todo en pesos enteros para evitar centavos raros.
+// Cuentas: total, cuánto le toca a cada uno, saldos y quién le debe a quién.
+// Cada gasto se divide entre todos los participantes o, si se eligió, solo entre algunos.
+// Las deudas se redondean a pesos enteros para evitar centavos raros.
 
-export type ConsumoMonto = { monto: number | null; pagado_por: string | null };
+export type ConsumoMonto = {
+  monto: number | null;
+  pagado_por: string | null;
+  /** entre quiénes se divide este gasto; vacío o null = entre todos los participantes */
+  entre?: string[] | null;
+};
 export type Pago = { de_perfil: string; a_perfil: string; monto: number };
 export type Deuda = { de: string; a: string; monto: number };
 
 export type Cuentas = {
   total: number;
   participantes: string[];
+  /** promedio por participante (si todo se divide parejo, es lo que paga cada uno) */
   cuota: number;
+  /** true si todos los gastos se dividen entre todos */
+  parejo: boolean;
+  /** cuánto le toca pagar a cada uno en total */
+  aPagar: Map<string, number>;
   /** positivo = le deben; negativo = debe */
   saldos: Map<string, number>;
   deudas: Deuda[];
 };
 
+/** Entre quiénes se reparte un gasto */
+export function repartoDe(c: ConsumoMonto, participantes: string[]) {
+  return c.entre && c.entre.length ? c.entre : participantes;
+}
+
 export function calcularCuentas(participantes: string[], consumos: ConsumoMonto[], pagos: Pago[]): Cuentas {
   const total = consumos.reduce((s, c) => s + Number(c.monto ?? 0), 0);
   const n = participantes.length;
-  const cuota = n ? total / n : 0;
 
   const saldos = new Map<string, number>();
-  const sumar = (id: string, v: number) => saldos.set(id, (saldos.get(id) ?? 0) + v);
+  const aPagar = new Map<string, number>();
+  const sumar = (m: Map<string, number>, id: string, v: number) => m.set(id, (m.get(id) ?? 0) + v);
 
-  for (const p of participantes) sumar(p, -cuota);
-  for (const c of consumos) if (c.monto && c.pagado_por) sumar(c.pagado_por, Number(c.monto));
+  for (const p of participantes) {
+    saldos.set(p, 0);
+    aPagar.set(p, 0);
+  }
+  let parejo = true;
+  for (const c of consumos) {
+    const monto = Number(c.monto ?? 0);
+    if (!monto) continue;
+    const entre = repartoDe(c, participantes);
+    if (entre !== participantes) parejo = false;
+    if (!entre.length) continue;
+    const parte = monto / entre.length;
+    for (const p of entre) {
+      sumar(saldos, p, -parte);
+      sumar(aPagar, p, parte);
+    }
+    if (c.pagado_por) sumar(saldos, c.pagado_por, monto);
+  }
   // si A le pagó a B: A debe menos, B tiene menos a favor
   for (const p of pagos) {
-    sumar(p.de_perfil, Number(p.monto));
-    sumar(p.a_perfil, -Number(p.monto));
+    sumar(saldos, p.de_perfil, Number(p.monto));
+    sumar(saldos, p.a_perfil, -Number(p.monto));
   }
 
-  // Emparejar deudores con acreedores (de mayor a menor) para minimizar transferencias
+  return {
+    total,
+    participantes,
+    cuota: n ? total / n : 0,
+    parejo,
+    aPagar,
+    saldos,
+    deudas: minimizarDeudas(saldos),
+  };
+}
+
+/** Empareja deudores con acreedores (de mayor a menor) para hacer la menor cantidad de transferencias */
+export function minimizarDeudas(saldos: Map<string, number>): Deuda[] {
   const deudores = [...saldos].filter(([, v]) => v <= -1).map(([id, v]) => ({ id, v: -v }));
   const acreedores = [...saldos].filter(([, v]) => v >= 1).map(([id, v]) => ({ id, v }));
   deudores.sort((a, b) => b.v - a.v);
@@ -48,8 +92,38 @@ export function calcularCuentas(participantes: string[], consumos: ConsumoMonto[
     if (deudores[i].v < 1) i++;
     if (acreedores[j].v < 1) j++;
   }
+  return deudas;
+}
 
-  return { total, participantes, cuota, saldos, deudas };
+/** Un lugar donde hay gastos: una juntada o una cuenta suelta (viaje, compra en común) */
+export type Contexto = {
+  clave: string;
+  nombre: string;
+  participantes: string[];
+  consumos: ConsumoMonto[];
+  pagos: Pago[];
+};
+
+/**
+ * Saldo general: suma lo de todas las juntadas y cuentas, más los pagos
+ * hechos "en general", y compensa las deudas cruzadas.
+ */
+export function saldoGeneral(contextos: Contexto[], pagosGenerales: Pago[]) {
+  const saldos = new Map<string, number>();
+  const sumar = (id: string, v: number) => saldos.set(id, (saldos.get(id) ?? 0) + v);
+  const detalle: { clave: string; nombre: string; saldos: Map<string, number> }[] = [];
+
+  for (const c of contextos) {
+    const cuentas = calcularCuentas(c.participantes, c.consumos, c.pagos);
+    for (const [id, v] of cuentas.saldos) sumar(id, v);
+    if ([...cuentas.saldos.values()].some((v) => Math.abs(v) >= 1))
+      detalle.push({ clave: c.clave, nombre: c.nombre, saldos: cuentas.saldos });
+  }
+  for (const p of pagosGenerales) {
+    sumar(p.de_perfil, Number(p.monto));
+    sumar(p.a_perfil, -Number(p.monto));
+  }
+  return { saldos, deudas: minimizarDeudas(saldos), detalle };
 }
 
 const fmt = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Check, Loader2, Pencil, Plus, Trash2, Undo2, UserMinus, UserPlus, X } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { calcularCuentas, pesos } from "@/lib/cuentas";
@@ -16,19 +17,26 @@ type Consumo = {
   descripcion: string;
   monto: number | null;
   pagado_por: string | null;
+  entre: string[] | null;
   cargado_por: string;
 };
 type PagoFila = { id: number; de_perfil: string; a_perfil: string; monto: number };
 
 type Props = {
-  juntadaId: string;
+  /** gastos de una juntada... */
+  juntadaId?: string;
+  /** ...o de una cuenta suelta (viaje, compra en común) */
+  cuentaId?: string;
   uid: string;
   puedeGestionar: boolean;
   perfiles: Perfil[];
   idsQueVinieron: string[];
 };
 
-export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQueVinieron }: Props) {
+export function SeccionConsumos({ juntadaId, cuentaId, uid, puedeGestionar, perfiles, idsQueVinieron }: Props) {
+  const esJuntada = !cuentaId;
+  const col = esJuntada ? "juntada_id" : "cuenta_id";
+  const lugarId = (cuentaId ?? juntadaId)!;
   const supabase = useMemo(() => crearClienteNavegador(), []);
   const [consumos, setConsumos] = useState<Consumo[]>([]);
   const [excluidos, setExcluidos] = useState<string[]>([]);
@@ -44,22 +52,24 @@ export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQ
 
   const recargar = useCallback(async () => {
     const [c, e, p] = await Promise.all([
-      supabase.from("consumos").select("*").eq("juntada_id", juntadaId).order("creado_en"),
-      supabase.from("exclusiones_gasto").select("perfil_id").eq("juntada_id", juntadaId),
-      supabase.from("pagos").select("*").eq("juntada_id", juntadaId).order("creado_en"),
+      supabase.from("consumos").select("*").eq(col, lugarId).order("creado_en"),
+      esJuntada
+        ? supabase.from("exclusiones_gasto").select("perfil_id").eq("juntada_id", lugarId)
+        : Promise.resolve({ data: [] as { perfil_id: string }[] }),
+      supabase.from("pagos").select("*").eq(col, lugarId).order("creado_en"),
     ]);
     if (c.data)
       setConsumos(c.data.map((x) => ({ ...x, monto: x.monto == null ? null : Number(x.monto) })) as Consumo[]);
     if (e.data) setExcluidos(e.data.map((x) => x.perfil_id as string));
     if (p.data) setPagos(p.data.map((x) => ({ ...x, monto: Number(x.monto) })) as PagoFila[]);
-  }, [supabase, juntadaId]);
+  }, [supabase, col, lugarId, esJuntada]);
 
   useEffect(() => {
     // primera carga diferida para no bloquear el render
     const t = setTimeout(recargar, 0);
-    const filtro = `juntada_id=eq.${juntadaId}`;
+    const filtro = `${col}=eq.${lugarId}`;
     const canal = supabase
-      .channel(`consumos-${juntadaId}`)
+      .channel(`consumos-${lugarId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "consumos", filter: filtro }, recargar)
       .on("postgres_changes", { event: "*", schema: "public", table: "pagos", filter: filtro }, recargar)
       .on("postgres_changes", { event: "*", schema: "public", table: "exclusiones_gasto", filter: filtro }, recargar)
@@ -68,7 +78,7 @@ export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQ
       clearTimeout(t);
       supabase.removeChannel(canal);
     };
-  }, [supabase, juntadaId, recargar]);
+  }, [supabase, col, lugarId, recargar]);
 
   const participantes = idsQueVinieron.filter((p) => !excluidos.includes(p));
   const cuentas = calcularCuentas(participantes, consumos, pagos);
@@ -93,7 +103,7 @@ export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQ
     const ok = await correr(() =>
       editando
         ? supabase.from("consumos").update(datos).eq("id", editando.id)
-        : supabase.from("consumos").insert({ ...datos, juntada_id: juntadaId }),
+        : supabase.from("consumos").insert({ ...datos, [col]: lugarId }),
     );
     if (ok) {
       setFormAbierto(false);
@@ -107,7 +117,7 @@ export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQ
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Consumos</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">{esJuntada ? "Consumos" : "Gastos"}</h2>
         {puedeCargar && !formAbierto && (
           <button
             onClick={() => {
@@ -136,6 +146,7 @@ export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQ
           inicial={editando}
           uid={uid}
           opcionesPago={perfiles.filter((p) => idsQueVinieron.includes(p.id) || p.id === editando?.pagado_por)}
+          participantes={perfiles.filter((p) => participantes.includes(p.id) || editando?.entre?.includes(p.id))}
           ocupado={ocupado}
           onGuardar={guardar}
           onCancelar={() => {
@@ -160,7 +171,12 @@ export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQ
             <div key={c.id} className="flex items-center gap-3 rounded-xl bg-superficie px-3 py-2.5">
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">{c.descripcion}</p>
-                {c.monto != null && <p className="text-xs text-texto-suave">Pagó {apodo(c.pagado_por)}</p>}
+                {c.monto != null && (
+                  <p className="text-xs text-texto-suave">
+                    Pagó {apodo(c.pagado_por)}
+                    {c.entre?.length ? ` · solo entre ${c.entre.map((id) => apodo(id)).join(", ")}` : ""}
+                  </p>
+                )}
               </div>
               {c.monto != null && <span className="font-mono text-sm">{pesos(c.monto)}</span>}
               {puedeEditar(c) && (
@@ -190,15 +206,32 @@ export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQ
               <p className="text-xs text-texto-suave">Total</p>
               <p className="text-2xl font-bold">{pesos(cuentas.total)}</p>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-texto-suave">
-                Cada uno ({participantes.length} {participantes.length === 1 ? "persona" : "personas"})
-              </p>
-              <p className="text-2xl font-bold text-acento">{pesos(cuentas.cuota)}</p>
-            </div>
+            {cuentas.parejo && (
+              <div className="text-right">
+                <p className="text-xs text-texto-suave">
+                  Cada uno ({participantes.length} {participantes.length === 1 ? "persona" : "personas"})
+                </p>
+                <p className="text-2xl font-bold text-acento">{pesos(cuentas.cuota)}</p>
+              </div>
+            )}
           </div>
+          {!cuentas.parejo && (
+            <div className="flex flex-col gap-1 text-sm">
+              <p className="text-xs text-texto-suave">A cada uno le toca</p>
+              {[...cuentas.aPagar]
+                .filter(([, v]) => v >= 1)
+                .sort((a, b) => b[1] - a[1])
+                .map(([id, v]) => (
+                  <div key={id} className="flex justify-between">
+                    <span>{apodo(id)}</span>
+                    <span className="font-mono text-acento">{pesos(v)}</span>
+                  </div>
+                ))}
+            </div>
+          )}
 
           {/* Quiénes entran en la división */}
+          {esJuntada && (<>
           <div className="flex flex-wrap gap-1.5">
             {idsQueVinieron.map((id) => {
               const fuera = excluidos.includes(id);
@@ -210,8 +243,8 @@ export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQ
                   onClick={() =>
                     correr(() =>
                       fuera
-                        ? supabase.from("exclusiones_gasto").delete().eq("juntada_id", juntadaId).eq("perfil_id", id)
-                        : supabase.from("exclusiones_gasto").insert({ juntada_id: juntadaId, perfil_id: id }),
+                        ? supabase.from("exclusiones_gasto").delete().eq("juntada_id", lugarId).eq("perfil_id", id)
+                        : supabase.from("exclusiones_gasto").insert({ juntada_id: lugarId, perfil_id: id }),
                     )
                   }
                   className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs ${
@@ -226,9 +259,10 @@ export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQ
           </div>
           {puedeGestionar && (
             <p className="-mt-1 text-[11px] text-texto-suave">
-              Tocá a alguien para sacarlo de la división (ej: no comió).
+              Tocá a alguien para sacarlo de toda la división (ej: llegó después de comer).
             </p>
           )}
+          </>)}
 
           {/* Quién le debe a quién */}
           {cuentas.deudas.length > 0 ? (
@@ -251,7 +285,7 @@ export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQ
                           () =>
                             supabase
                               .from("pagos")
-                              .insert({ juntada_id: juntadaId, de_perfil: d.de, a_perfil: d.a, monto: d.monto }),
+                              .insert({ [col]: lugarId, de_perfil: d.de, a_perfil: d.a, monto: d.monto }),
                           `Listo: ${apodo(d.de)} le pagó ${pesos(d.monto)} a ${apodo(d.a)}.`,
                         )
                       }
@@ -266,6 +300,10 @@ export function SeccionConsumos({ juntadaId, uid, puedeGestionar, perfiles, idsQ
           ) : (
             <p className="border-t border-borde pt-3 text-sm text-acento">✓ Cuentas claras, nadie le debe a nadie.</p>
           )}
+
+          <Link href="/gastos" className="text-xs text-acento">
+            Esto es solo {esJuntada ? "de esta juntada" : "de esta cuenta"}. Ver el saldo general entre todos →
+          </Link>
 
           {pagos.length > 0 && (
             <div className="flex flex-col gap-1 border-t border-borde pt-3">
@@ -316,6 +354,7 @@ function FormConsumo({
   inicial,
   uid,
   opcionesPago,
+  participantes,
   ocupado,
   onGuardar,
   onCancelar,
@@ -323,8 +362,15 @@ function FormConsumo({
   inicial: Consumo | null;
   uid: string;
   opcionesPago: Perfil[];
+  participantes: Perfil[];
   ocupado: boolean;
-  onGuardar: (d: { tipo: TipoConsumo; descripcion: string; monto: number | null; pagado_por: string | null }) => void;
+  onGuardar: (d: {
+    tipo: TipoConsumo;
+    descripcion: string;
+    monto: number | null;
+    pagado_por: string | null;
+    entre: string[] | null;
+  }) => void;
   onCancelar: () => void;
 }) {
   const [tipo, setTipo] = useState<TipoConsumo>(inicial?.tipo ?? "comida");
@@ -334,8 +380,17 @@ function FormConsumo({
     inicial?.pagado_por ?? (opcionesPago.some((p) => p.id === uid) ? uid : (opcionesPago[0]?.id ?? "")),
   );
 
+  // entre quiénes se divide: por defecto entre todos
+  const [entre, setEntre] = useState<string[]>(
+    inicial?.entre?.length ? inicial.entre : participantes.map((p) => p.id),
+  );
+  const todos = participantes.every((p) => entre.includes(p.id));
+
   const montoNum = monto.trim() === "" ? null : Number(monto.replace(/\./g, "").replace(",", "."));
-  const valido = descripcion.trim().length > 0 && (montoNum === null || (!isNaN(montoNum) && montoNum >= 0));
+  const valido =
+    descripcion.trim().length > 0 &&
+    (montoNum === null || (!isNaN(montoNum) && montoNum >= 0)) &&
+    (montoNum === null || entre.length > 0);
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-borde bg-superficie p-4">
@@ -386,6 +441,29 @@ function FormConsumo({
           </select>
         )}
       </div>
+      {montoNum !== null && participantes.length > 1 && (
+        <div className="flex flex-col gap-1.5">
+          <p className="text-xs text-texto-suave">
+            Se divide entre {todos ? "todos" : `${entre.length} (tocá para sacar o sumar)`}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {participantes.map((p) => {
+              const adentro = entre.includes(p.id);
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => setEntre(adentro ? entre.filter((x) => x !== p.id) : [...entre, p.id])}
+                  className={`rounded-full px-2.5 py-1 text-xs ${
+                    adentro ? "bg-acento/20 text-acento ring-1 ring-acento/40" : "bg-fondo text-texto-suave line-through"
+                  }`}
+                >
+                  {p.apodo}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
       <div className="flex gap-2">
         <button
           disabled={!valido || ocupado}
@@ -395,6 +473,7 @@ function FormConsumo({
               descripcion: descripcion.trim(),
               monto: montoNum,
               pagado_por: montoNum !== null ? pagadoPor || null : null,
+              entre: montoNum !== null && !todos ? entre : null,
             })
           }
           className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-black disabled:opacity-50"

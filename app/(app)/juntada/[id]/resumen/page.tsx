@@ -30,6 +30,7 @@ export default function ResumenPage({ params }: PageProps<"/juntada/[id]/resumen
 }
 
 type ConsumoR = {
+  entre: string[] | null;
   tipo: "comida" | "postre" | "bebida" | "otro";
   descripcion: string;
   monto: number | null;
@@ -55,7 +56,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
       supabase.from("perfiles").select("id, apodo, alias"),
       supabase.from("asistencias").select("*").eq("juntada_id", id).order("entrada"),
       supabase.from("confirmaciones").select("*").eq("juntada_id", id),
-      supabase.from("consumos").select("tipo, descripcion, monto, pagado_por").eq("juntada_id", id).order("creado_en"),
+      supabase.from("consumos").select("tipo, descripcion, monto, pagado_por, entre").eq("juntada_id", id).order("creado_en"),
       supabase.from("exclusiones_gasto").select("perfil_id").eq("juntada_id", id),
       supabase.from("pagos").select("de_perfil, a_perfil, monto").eq("juntada_id", id),
       supabase.from("frases").select("perfil_id, texto, frase_votos(perfil_id)").eq("juntada_id", id),
@@ -264,10 +265,20 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
         )}
         {cuentas.total > 0 && (
           <div className="flex flex-col gap-2 rounded-2xl border border-acento/30 bg-acento/5 p-4 text-sm">
-            <p>
-              Total <b>{pesos(cuentas.total)}</b> entre {cuentas.participantes.length} ={" "}
-              <b className="text-acento">{pesos(cuentas.cuota)} c/u</b>
-            </p>
+            {cuentas.parejo ? (
+              <p>
+                Total <b>{pesos(cuentas.total)}</b> entre {cuentas.participantes.length} ={" "}
+                <b className="text-acento">{pesos(cuentas.cuota)} c/u</b>
+              </p>
+            ) : (
+              <p>
+                Total <b>{pesos(cuentas.total)}</b> ·{" "}
+                {[...cuentas.aPagar]
+                  .filter(([, v]) => v >= 1)
+                  .map(([id, v]) => `${apodo(id)} ${pesos(v)}`)
+                  .join(" · ")}
+              </p>
+            )}
             {cuentas.deudas.length ? (
               cuentas.deudas.map((d) => (
                 <div key={`${d.de}-${d.a}`} className="flex flex-col gap-1">
