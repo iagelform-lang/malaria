@@ -4,7 +4,7 @@ import { usuarioActual } from "@/lib/sesion";
 import { VistaJuntada } from "@/components/juntada/VistaJuntada";
 import type { Asistencia, Confirmacion, Juntada, Perfil } from "@/lib/tipos";
 
-export default function JuntadaPage({ params }: PageProps<"/juntada/[id]">) {
+export default function JuntadaPage({ params, searchParams }: PageProps<"/juntada/[id]">) {
   return (
     <Suspense
       fallback={
@@ -15,13 +15,20 @@ export default function JuntadaPage({ params }: PageProps<"/juntada/[id]">) {
         </div>
       }
     >
-      <Contenido params={params} />
+      <Contenido params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function Contenido({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+async function Contenido({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const solapa = typeof sp.solapa === "string" ? sp.solapa : undefined;
   const { supabase, uid, esAdmin } = await usuarioActual();
 
   const [{ data: juntada }, { data: perfiles }, { data: asistencias }, { data: confirmaciones }] = await Promise.all([
@@ -43,6 +50,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
       uid={uid!}
       puedeGestionar={esAdmin || j.anfitrion_id === uid || j.creado_por === uid}
       esAdmin={esAdmin}
+      solapa={solapa}
     />
   );
 }

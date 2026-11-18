@@ -1,12 +1,23 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
-/** Solapas arriba para ver una sección por vez */
-export function Solapas({ solapas }: { solapas: { clave: string; titulo: string; contenido: ReactNode }[] }) {
-  const [activa, setActiva] = useState(solapas[0]?.clave);
+/** Solapas arriba para ver una sección por vez. `inicial` abre una directo (y la trae a la vista). */
+export function Solapas({
+  solapas,
+  inicial,
+}: {
+  solapas: { clave: string; titulo: string; contenido: ReactNode }[];
+  inicial?: string;
+}) {
+  const existe = inicial && solapas.some((s) => s.clave === inicial);
+  const [activa, setActiva] = useState(existe ? inicial : solapas[0]?.clave);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (existe) ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [existe]);
   return (
-    <div className="flex flex-col gap-5">
+    <div ref={ref} className="flex scroll-mt-2 flex-col gap-5">
       <div className="sticky top-0 z-10 -mx-4 overflow-x-auto bg-fondo/95 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-4 py-2 backdrop-blur">
         <div className="flex w-max gap-1.5">
           {solapas.map((s) => (

@@ -48,6 +48,8 @@ type Props = {
   asistenciasIniciales: Asistencia[];
   confirmacionesIniciales: Confirmacion[];
   uid: string;
+  /** solapa a abrir directo (desde el panel de Inicio) */
+  solapa?: string;
   puedeGestionar: boolean;
   esAdmin: boolean;
 };
@@ -63,6 +65,7 @@ const ETIQUETA_ESTADO: Record<
 };
 
 export function VistaJuntada({
+  solapa,
   juntadaInicial,
   perfiles,
   asistenciasIniciales,
@@ -613,6 +616,7 @@ export function VistaJuntada({
       {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
         <Solapas
           key={juntada.estado}
+          inicial={solapa}
           solapas={[
             ...(juntada.estado === "activa"
               ? [

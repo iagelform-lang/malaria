@@ -89,6 +89,33 @@ async function Listado() {
   return (
     <div className="flex flex-col gap-8">
       <CartelAvisos />
+      {activa && activa.asistencias.some((a) => a.perfil_id === uid) && (
+        <div className="flex flex-col gap-3 rounded-2xl border-2 border-acento/60 bg-acento/10 p-4">
+          <Link href={`/juntada/${activa.id}`} className="flex items-center justify-between">
+            <span className="flex items-center gap-2 font-bold text-acento">
+              <Radio className="size-4 animate-pulse" /> Estamos en {activa.nombre}
+            </span>
+            <ChevronRight className="size-4 text-acento" />
+          </Link>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { href: `/juntada/${activa.id}?solapa=gastos`, emoji: "💸", texto: "Cargar gasto" },
+              { href: "/juegos", emoji: "🎮", texto: "Jugar / anotar" },
+              { href: `/juntada/${activa.id}?solapa=fotos`, emoji: "📸", texto: "Subir foto" },
+              { href: `/juntada/${activa.id}?solapa=frases`, emoji: "💬", texto: "Frase de la noche" },
+            ].map((b) => (
+              <Link
+                key={b.texto}
+                href={b.href}
+                className="flex flex-col items-center gap-1 rounded-xl bg-superficie py-3 text-sm font-semibold active:scale-95"
+              >
+                <span className="text-2xl">{b.emoji}</span>
+                {b.texto}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
       <ProximaFecha
         fechas={(fechas as FechaEspecial[]) ?? []}
         voy={(voy as Voy[]) ?? []}
