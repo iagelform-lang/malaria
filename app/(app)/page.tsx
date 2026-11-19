@@ -96,9 +96,6 @@ async function Listado() {
   return (
     <div className="flex flex-col gap-6">
       {activa && miToken && <QrLlegada uid={uid!} token={miToken} nombre={activa.nombre} />}
-      <CartelAvisos />
-      <CartelNovedades />
-
       {/* 1. Lo que está pasando ahora */}
       {activa && estoyAdentro && (
         <div className="flex flex-col gap-3 rounded-2xl border-2 border-acento bg-acento/10 p-4">
@@ -157,6 +154,9 @@ async function Listado() {
           )}
         </div>
       )}
+
+      <CartelAvisos />
+      <CartelNovedades />
 
       {/* 2. Lo que tengo que responder */}
       {porResponder.length > 0 && (
