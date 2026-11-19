@@ -7,6 +7,7 @@ import type { FechaEspecial } from "@/lib/fechas";
 import { ProximaFecha, type Voy } from "@/components/fechas/ProximaFecha";
 import { usuarioActual } from "@/lib/sesion";
 import { CartelAvisos } from "@/components/inicio/CartelAvisos";
+import { CartelNovedades } from "@/components/inicio/CartelNovedades";
 import { cargarSaldoGeneral } from "@/lib/saldoServidor";
 import { pesos } from "@/lib/cuentas";
 
@@ -89,6 +90,7 @@ async function Listado() {
   return (
     <div className="flex flex-col gap-8">
       <CartelAvisos />
+      <CartelNovedades />
       {activa && activa.asistencias.some((a) => a.perfil_id === uid) && (
         <div className="flex flex-col gap-3 rounded-2xl border-2 border-acento/60 bg-acento/10 p-4">
           <Link href={`/juntada/${activa.id}`} className="flex items-center justify-between">
