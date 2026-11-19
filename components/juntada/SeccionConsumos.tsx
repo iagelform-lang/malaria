@@ -158,7 +158,11 @@ export function SeccionConsumos({ juntadaId, cuentaId, uid, puedeGestionar, perf
 
       {consumos.length === 0 && !formAbierto && (
         <p className="rounded-2xl border border-dashed border-borde p-4 text-center text-sm text-texto-suave">
-          {puedeCargar ? "Anotá lo que comieron, el postre y lo que gastaron." : "Todavía no cargaron nada."}
+          {puedeCargar
+            ? esJuntada
+              ? "Anotá lo que comieron, el postre y lo que gastaron."
+              : "Anotá cada gasto: nafta, alojamiento, compras…"
+            : "Todavía no cargaron nada."}
         </p>
       )}
 
