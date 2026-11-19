@@ -266,7 +266,7 @@ export function VistaJuntada({
     <div className="flex flex-col gap-6 pt-2">
       {/* Encabezado */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pr-12">
           <Link href="/" className="-ml-2 rounded-full p-2 text-texto-suave">
             <ArrowLeft className="size-5" />
           </Link>
