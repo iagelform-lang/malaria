@@ -40,7 +40,7 @@ export function CartelNovedades() {
       <button onClick={cerrar} aria-label="Cerrar" className="absolute right-2 top-2 rounded-full p-1.5 text-texto-suave">
         <X className="size-4" />
       </button>
-      <p className="pr-8 font-bold text-violet-200">✨ Novedades para la próxima juntada</p>
+      <p className="pr-8 font-bold text-violet-700">✨ Novedades para la próxima juntada</p>
       <ul className="flex flex-col gap-2 text-sm">
         {NOVEDADES.map((n) => (
           <li key={n.texto} className="flex gap-2">

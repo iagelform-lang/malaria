@@ -20,7 +20,7 @@ const PAUSA_TRAS_LECTURA_MS = 1800; // tiempo que se muestra el cartel antes de 
 const MISMO_QR_IGNORAR_MS = 5000; // evita releer el mismo QR que sigue frente a la cámara
 
 const ESTILO: Record<Feedback["tipo"], string> = {
-  entrada: "bg-acento text-black",
+  entrada: "bg-acento text-white",
   salida: "bg-amber-400 text-black",
   ignorado: "bg-zinc-600 text-white",
   error: "bg-red-500 text-white",
@@ -171,13 +171,13 @@ export function Escaner({ juntadaId, nombre }: { juntadaId: string; nombre: stri
 
       {historial.length > 0 && (
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Últimos escaneos</h2>
+          <h2 className="text-lg font-bold">Últimos escaneos</h2>
           {historial.map((h) => (
             <div key={h.id} className="flex items-center gap-3 rounded-xl bg-superficie px-3 py-2">
               {h.tipo === "entrada" ? (
                 <LogIn className="size-4 text-acento" />
               ) : (
-                <LogOut className="size-4 text-amber-400" />
+                <LogOut className="size-4 text-amber-700" />
               )}
               <span className="flex-1 font-medium">{h.apodo}</span>
               <span className="text-sm text-texto-suave">{h.detalle}</span>

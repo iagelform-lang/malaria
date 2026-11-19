@@ -23,7 +23,7 @@ export function ElegirPuntos({
             onClick={() => cambiar(n.puntos)}
             className={`flex flex-col items-center rounded-xl px-2 py-2.5 text-center ${
               valor === n.puntos
-                ? "bg-acento text-black"
+                ? "bg-acento text-white"
                 : "bg-superficie text-texto-suave ring-1 ring-borde"
             }`}
           >

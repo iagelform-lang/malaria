@@ -22,7 +22,7 @@ export default function StatsPage() {
       <h1 className="text-2xl font-bold">Stats</h1>
       <Link
         href="/wrapped"
-        className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-acento via-lime-300 to-amber-300 px-4 py-3 font-bold text-black active:scale-[0.99]"
+        className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-lime-300 via-lime-200 to-amber-200 px-4 py-3 font-bold text-black active:scale-[0.99]"
       >
         <span>🎁 Malaria Wrapped del año</span>
         <ChevronRight className="size-5" />
@@ -143,7 +143,7 @@ async function Contenido() {
             contenido: (
               <>
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">
+        <h2 className="text-lg font-bold">
           Insignias
         </h2>
         <div className="grid grid-cols-2 gap-3">

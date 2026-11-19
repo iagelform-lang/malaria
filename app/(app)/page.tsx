@@ -18,7 +18,7 @@ export default function InicioPage() {
         <h1 className="text-2xl font-bold">Malaria 3.0</h1>
         <Link
           href="/juntada/nueva"
-          className="flex items-center gap-1.5 rounded-full bg-acento px-4 py-2 text-sm font-semibold text-black active:scale-95"
+          className="flex items-center gap-1.5 rounded-full bg-acento px-4 py-2 text-sm font-semibold text-white active:scale-95"
         >
           <Plus className="size-4" /> Proponer
         </Link>
@@ -55,7 +55,6 @@ async function Listado() {
   const [
     { data: activas },
     { data: propuestas },
-    { data: pasadas },
     { data: fechas },
     { data: voy },
     { data: perfs },
@@ -63,12 +62,6 @@ async function Listado() {
   ] = await Promise.all([
       supabase.from("juntadas").select(campos).eq("estado", "activa").limit(1),
       supabase.from("juntadas").select(campos).eq("estado", "propuesta").order("inicio_programado"),
-      supabase
-        .from("juntadas")
-        .select(campos)
-        .eq("estado", "finalizada")
-        .order("inicio_programado", { ascending: false })
-        .limit(5),
       supabase.from("fechas_especiales").select("id, nombre, dia, mes, desde_anio, lugar, creado_por, duracion_dias, puntos"),
       supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
       supabase.from("perfiles").select("id, apodo"),
@@ -81,23 +74,32 @@ async function Listado() {
 
   const activa = (activas as JuntadaConConteo[] | null)?.[0];
   const prox = (propuestas as JuntadaConConteo[] | null) ?? [];
-  const hist = (pasadas as JuntadaConConteo[] | null) ?? [];
   // juntadas abiertas a las que el usuario todavía no respondió (ni está presente)
   const pendientes = [...(activa ? [activa] : []), ...prox].filter(
     (j) => !j.confirmaciones.some((c) => c.perfil_id === uid) && !j.asistencias.some((a) => a.perfil_id === uid),
   );
 
+  const estoyAdentro = !!activa && activa.asistencias.some((a) => a.perfil_id === uid);
+  const porResponder = pendientes.filter((j) => j.id !== activa?.id);
+  const idsPendientes = new Set(porResponder.map((j) => j.id));
+  const proximas = prox.filter((j) => !idsPendientes.has(j.id));
+  const hayAlgo = !!activa || porResponder.length > 0 || (sondeos ?? []).length > 0 || proximas.length > 0;
+
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <CartelAvisos />
       <CartelNovedades />
-      {activa && activa.asistencias.some((a) => a.perfil_id === uid) && (
-        <div className="flex flex-col gap-3 rounded-2xl border-2 border-acento/60 bg-acento/10 p-4">
+
+      {/* 1. Lo que está pasando ahora */}
+      {activa && estoyAdentro && (
+        <div className="flex flex-col gap-3 rounded-2xl border-2 border-acento bg-acento/10 p-4">
           <Link href={`/juntada/${activa.id}`} className="flex items-center justify-between">
-            <span className="flex items-center gap-2 font-bold text-acento">
-              <Radio className="size-4 animate-pulse" /> Estamos en {activa.nombre}
+            <span className="flex items-center gap-2 text-lg font-bold text-acento">
+              <Radio className="size-5 animate-pulse" /> Estás en {activa.nombre}
             </span>
-            <ChevronRight className="size-4 text-acento" />
+            <span className="flex items-center text-sm font-semibold text-acento">
+              Ver <ChevronRight className="size-4" />
+            </span>
           </Link>
           <div className="grid grid-cols-2 gap-2">
             {[
@@ -109,43 +111,61 @@ async function Listado() {
               <Link
                 key={b.texto}
                 href={b.href}
-                className="flex flex-col items-center gap-1 rounded-xl bg-superficie py-3 text-sm font-semibold active:scale-95"
+                className="flex flex-col items-center gap-1 rounded-xl bg-superficie py-4 text-base font-semibold shadow-sm active:scale-95"
               >
-                <span className="text-2xl">{b.emoji}</span>
+                <span className="text-3xl">{b.emoji}</span>
                 {b.texto}
               </Link>
             ))}
           </div>
         </div>
       )}
-      <ProximaFecha
-        fechas={(fechas as FechaEspecial[]) ?? []}
-        voy={(voy as Voy[]) ?? []}
-        apodos={Object.fromEntries((perfs ?? []).map((p) => [p.id, p.apodo]))}
-        uid={uid ?? ""}
-      />
-      {pendientes.length > 0 && (
-        <div className="flex flex-col gap-2 rounded-2xl border-2 border-amber-400/60 bg-amber-400/10 p-4">
-          <p className="font-bold text-amber-300">
-            {pendientes.length === 1 ? "Te falta responder si vas" : `Te falta responder ${pendientes.length} juntadas`}
+      {activa && !estoyAdentro && (
+        <div className="flex flex-col gap-2 rounded-2xl border-2 border-acento bg-acento/10 p-5">
+          <Link href={`/juntada/${activa.id}`} className="flex flex-col gap-2">
+          <p className="flex items-center gap-2 text-sm font-semibold text-acento">
+            <Radio className="size-4 animate-pulse" /> Juntada en curso
           </p>
-          {pendientes.map((j) => (
+          <p className="text-2xl font-bold">{activa.nombre}</p>
+          <p className="flex items-center gap-3 text-texto-suave">
+            {activa.lugar && (
+              <span className="flex items-center gap-1">
+                <MapPin className="size-4" /> {activa.lugar}
+              </span>
+            )}
+            <span className="flex items-center gap-1">
+              <Users className="size-4" /> {new Set(activa.asistencias.map((a) => a.perfil_id)).size} presentes
+            </span>
+          </p>
+          </Link>
+          <Link href="/perfil" className="mt-1 rounded-xl bg-acento py-3 text-center font-bold text-white active:scale-[0.99]">
+            Llegué: mostrar mi QR
+          </Link>
+        </div>
+      )}
+
+      {/* 2. Lo que tengo que responder */}
+      {porResponder.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-lg font-bold">Respondé si vas</h2>
+          {porResponder.map((j) => (
             <Link
               key={j.id}
               href={`/juntada/${j.id}`}
-              className="flex items-center justify-between rounded-xl bg-superficie px-3 py-2.5"
+              className="flex items-center gap-3 rounded-2xl border-2 border-amber-400 bg-amber-50 p-4 active:scale-[0.99]"
             >
-              <span className="truncate font-medium">{j.nombre}</span>
-              <span className="flex items-center gap-1 text-sm font-semibold text-acento">
-                Voy / No voy <ChevronRight className="size-4" />
-              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-lg font-semibold">{j.nombre}</p>
+                <p className="text-sm text-texto-suave">{fechaYHora(j.inicio_programado)}</p>
+              </div>
+              <span className="rounded-xl bg-amber-400 px-3 py-2 text-sm font-bold text-black">Voy / No voy</span>
             </Link>
           ))}
-        </div>
+        </section>
       )}
       {(sondeos ?? []).length > 0 && (
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Votá la fecha</h2>
+          <h2 className="text-lg font-bold">Votá la fecha</h2>
           {(sondeos ?? []).map((s) => {
             const votantes = new Set(s.sondeo_opciones.flatMap((o) => o.sondeo_votos.map((v) => v.perfil_id)));
             const vote = votantes.has(uid ?? "");
@@ -153,81 +173,56 @@ async function Listado() {
               <Link
                 key={s.id}
                 href={`/sondeo/${s.id}`}
-                className={`flex items-center gap-3 rounded-2xl border p-4 active:scale-[0.99] ${
-                  vote ? "border-borde bg-superficie" : "border-2 border-violet-400/60 bg-violet-500/10"
+                className={`flex items-center gap-3 rounded-2xl p-4 active:scale-[0.99] ${
+                  vote ? "border border-borde bg-superficie" : "border-2 border-violet-400 bg-violet-50"
                 }`}
               >
-                <CalendarRange className="size-6 shrink-0 text-violet-300" />
+                <CalendarRange className="size-6 shrink-0 text-violet-700" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{s.nombre}</p>
-                  <p className="text-xs text-texto-suave">
+                  <p className="truncate text-lg font-semibold">{s.nombre}</p>
+                  <p className="text-sm text-texto-suave">
                     {s.sondeo_opciones.length} fechas posibles · votaron {votantes.size}
                   </p>
                 </div>
-                <span className="flex items-center gap-1 text-sm font-semibold text-violet-300">
-                  {vote ? "Ver" : "Votar"} <ChevronRight className="size-4" />
+                <span
+                  className={`rounded-xl px-3 py-2 text-sm font-bold ${
+                    vote ? "text-violet-700" : "bg-violet-600 text-white"
+                  }`}
+                >
+                  {vote ? "Ver" : "Votar"}
                 </span>
               </Link>
             );
           })}
         </section>
       )}
-      {activa ? (
-        <Link
-          href={`/juntada/${activa.id}`}
-          className="block rounded-2xl border border-acento/40 bg-acento/10 p-5 active:scale-[0.99]"
-        >
-          <p className="mb-1 flex items-center gap-2 text-sm font-medium text-acento">
-            <Radio className="size-4 animate-pulse" /> En curso
-          </p>
-          <p className="text-2xl font-bold">{activa.nombre}</p>
-          {activa.lugar && (
-            <p className="mt-1 flex items-center gap-1 text-texto-suave">
-              <MapPin className="size-4" /> {activa.lugar}
-            </p>
-          )}
-          <p className="mt-3 flex items-center justify-between text-sm">
-            <span className="flex items-center gap-1">
-              <Users className="size-4" /> {new Set(activa.asistencias.map((a) => a.perfil_id)).size} presentes
-            </span>
-            <span className="flex items-center text-acento">
-              Entrar <ChevronRight className="size-4" />
-            </span>
-          </p>
-        </Link>
-      ) : (
-        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-borde p-6 text-center">
+
+      {/* 3. Lo que viene */}
+      {proximas.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-lg font-bold">Próximas juntadas</h2>
+          {proximas.map((j) => (
+            <FilaJuntada key={j.id} j={j} detalle={resumenRespuestas(j)} />
+          ))}
+        </section>
+      )}
+      <ProximaFecha
+        fechas={(fechas as FechaEspecial[]) ?? []}
+        voy={(voy as Voy[]) ?? []}
+        apodos={Object.fromEntries((perfs ?? []).map((p) => [p.id, p.apodo]))}
+        uid={uid ?? ""}
+      />
+
+      {!hayAlgo && (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-borde bg-superficie p-6 text-center">
           <CalendarPlus className="size-8 text-texto-suave" />
-          <p className="text-texto-suave">No hay ninguna juntada en curso.</p>
+          <p className="text-texto-suave">No hay nada armado. ¿Proponés una juntada?</p>
+          <Link href="/juntada/nueva" className="rounded-xl bg-acento px-4 py-2.5 font-bold text-white">
+            Proponer juntada
+          </Link>
         </div>
       )}
-
-      <Seccion titulo="Propuestas" vacio="Nadie propuso nada todavía.">
-        {prox.map((j) => (
-          <FilaJuntada key={j.id} j={j} detalle={resumenRespuestas(j)} />
-        ))}
-      </Seccion>
-
-      <Seccion titulo="Últimas" vacio="Todavía no terminó ninguna.">
-        {hist.map((j) => (
-          <FilaJuntada
-            key={j.id}
-            j={j}
-            detalle={`fueron ${new Set(j.asistencias.map((a) => a.perfil_id)).size}`}
-            apagada
-          />
-        ))}
-      </Seccion>
     </div>
-  );
-}
-
-function Seccion({ titulo, vacio, children }: { titulo: string; vacio: string; children: React.ReactNode[] }) {
-  return (
-    <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">{titulo}</h2>
-      {children.length ? children : <p className="text-sm text-texto-suave">{vacio}</p>}
-    </section>
   );
 }
 
@@ -240,11 +235,11 @@ function FilaJuntada({ j, detalle, apagada }: { j: Juntada; detalle: string; apa
       }`}
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">{j.nombre}</p>
+        <p className="truncate text-lg font-semibold">{j.nombre}</p>
         <p className="flex items-center gap-1 text-sm text-texto-suave">
           <Clock className="size-3.5" /> {fechaYHora(j.inicio_programado)}
         </p>
-        <p className="text-xs text-texto-suave">
+        <p className="text-sm text-texto-suave">
           {j.comida && <>🍽️ {j.comida} · </>}
           {detalle}
         </p>
@@ -266,6 +261,8 @@ async function TarjetaSaldo() {
   if (!uid) return null;
   const { saldos } = await cargarSaldoGeneral(supabase);
   const mio = Math.round(saldos.get(uid) ?? 0);
+  // si estás al día no ocupa lugar en Inicio (Cuentas sigue en Stats → Gastos)
+  if (Math.abs(mio) < 1) return null;
   return (
     <Link
       href="/gastos"
@@ -274,7 +271,7 @@ async function TarjetaSaldo() {
       <span className="text-2xl">💸</span>
       <div className="flex-1">
         <p className="font-medium">Cuentas</p>
-        <p className={`text-sm ${mio <= -1 ? "text-red-300" : mio >= 1 ? "text-acento" : "text-texto-suave"}`}>
+        <p className={`text-sm ${mio <= -1 ? "text-red-600" : mio >= 1 ? "text-acento" : "text-texto-suave"}`}>
           {mio <= -1 ? `Debés ${pesos(-mio)}` : mio >= 1 ? `Te deben ${pesos(mio)}` : "Estás al día · viajes y gastos en común"}
         </p>
       </div>

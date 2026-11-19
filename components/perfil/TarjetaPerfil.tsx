@@ -70,7 +70,7 @@ export function TarjetaPerfil({ apodo, esAdmin, alias, email, tokenInicial }: Pr
               onChange={(e) => setBorrador(e.target.value)}
               className="flex-1 rounded-xl border border-borde bg-superficie px-4 py-3 text-xl font-semibold outline-none focus:border-acento"
             />
-            <button onClick={guardarApodo} disabled={pendiente} className="rounded-xl bg-acento p-3 text-black">
+            <button onClick={guardarApodo} disabled={pendiente} className="rounded-xl bg-acento p-3 text-white">
               <Check className="size-5" />
             </button>
             <button
@@ -112,7 +112,7 @@ export function TarjetaPerfil({ apodo, esAdmin, alias, email, tokenInicial }: Pr
               onChange={(e) => setAliasBorrador(e.target.value)}
               className="min-w-0 flex-1 rounded-xl border border-borde bg-fondo px-3 py-2 outline-none focus:border-acento"
             />
-            <button onClick={guardarAlias} disabled={pendiente} className="rounded-xl bg-acento p-2.5 text-black">
+            <button onClick={guardarAlias} disabled={pendiente} className="rounded-xl bg-acento p-2.5 text-white">
               <Check className="size-4" />
             </button>
             <button

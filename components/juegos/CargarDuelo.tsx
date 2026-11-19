@@ -88,7 +88,7 @@ export function CargarDuelo({
                 key={id}
                 onClick={() => setGanador(id)}
                 className={`rounded-xl py-3 font-bold ${
-                  ganador === id ? "bg-acento text-black" : "bg-superficie text-texto-suave ring-1 ring-borde"
+                  ganador === id ? "bg-acento text-white" : "bg-superficie text-texto-suave ring-1 ring-borde"
                 }`}
               >
                 🏆 {apodo(id)}
@@ -104,11 +104,11 @@ export function CargarDuelo({
         onChange={(e) => setResultado(e.target.value)}
         className="rounded-xl border border-borde bg-superficie px-3 py-2.5 text-sm outline-none focus:border-acento"
       />
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         disabled={!a || !b || !ganador || ocupado}
         onClick={guardar}
-        className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-bold text-black disabled:opacity-50"
+        className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-bold text-white disabled:opacity-50"
       >
         {ocupado && <Loader2 className="size-4 animate-spin" />} Guardar duelo
       </button>

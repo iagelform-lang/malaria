@@ -58,10 +58,10 @@ const ETIQUETA_ESTADO: Record<
   Juntada["estado"],
   { texto: string; clase: string }
 > = {
-  propuesta: { texto: "Propuesta", clase: "bg-sky-500/15 text-sky-300" },
+  propuesta: { texto: "Propuesta", clase: "bg-sky-500/15 text-sky-700" },
   activa: { texto: "En curso", clase: "bg-acento/15 text-acento" },
-  finalizada: { texto: "Finalizada", clase: "bg-zinc-500/20 text-zinc-300" },
-  cancelada: { texto: "Cancelada", clase: "bg-red-500/15 text-red-300" },
+  finalizada: { texto: "Finalizada", clase: "bg-zinc-500/20 text-zinc-600" },
+  cancelada: { texto: "Cancelada", clase: "bg-red-500/15 text-red-600" },
 };
 
 export function VistaJuntada({
@@ -293,7 +293,7 @@ export function VistaJuntada({
           >
             {estado.texto}
           </span>
-          <span className="w-fit rounded-full bg-amber-400/15 px-2.5 py-0.5 text-xs font-medium text-amber-300">
+          <span className="w-fit rounded-full bg-amber-400/15 px-2.5 py-0.5 text-xs font-medium text-amber-700">
             ⭐ {nivelDe(juntada.puntos ?? 10).nombre} · {juntada.puntos ?? 10}{" "}
             pts
           </span>
@@ -378,7 +378,7 @@ export function VistaJuntada({
                     "¡Arrancó la juntada! Ya quedaste anotado como presente.",
                   )
                 }
-                className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black active:scale-[0.98] disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-white active:scale-[0.98] disabled:opacity-50"
               >
                 {ocupado ? (
                   <Loader2 className="size-5 animate-spin" />
@@ -422,7 +422,7 @@ export function VistaJuntada({
           )}
           <Link
             href={`/juntada/${id}/escanear`}
-            className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black active:scale-[0.98]"
+            className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-white active:scale-[0.98]"
           >
             <ScanLine className="size-5" /> Escanear QR
           </Link>
@@ -443,7 +443,7 @@ export function VistaJuntada({
       {juntada.estado === "finalizada" && (
         <Link
           href={`/juntada/${id}/resumen`}
-          className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black active:scale-[0.98]"
+          className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-white active:scale-[0.98]"
         >
           <Flag className="size-5" /> Ver resumen completo
         </Link>
@@ -511,8 +511,8 @@ export function VistaJuntada({
         </Seccion>
       )}
 
-      {/* Esperados */}
-      {abierta && (
+      {/* Esperados (durante la juntada, si no falta nadie, no ocupa lugar) */}
+      {abierta && (esperados.length > 0 || juntada.estado === "propuesta") && (
         <Seccion titulo={`Van · ${esperados.length}`}>
           {esperados.length === 0 && (
             <Vacio texto="Todavía nadie dijo que va." />
@@ -539,7 +539,7 @@ export function VistaJuntada({
                 {ahoraVivo !== null &&
                   juntada.estado === "activa" &&
                   atraso > 0 && (
-                    <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs text-red-300">
+                    <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs text-red-600">
                       +{duracion(atraso)} tarde
                     </span>
                   )}
@@ -562,7 +562,7 @@ export function VistaJuntada({
           )}
           {sinResponder.length > 0 && (
             <p>
-              <span className="text-amber-300">
+              <span className="text-amber-700">
                 Falta responder ({sinResponder.length}):{" "}
               </span>
               {sinResponder.map((p) => p.apodo).join(", ")}
@@ -701,7 +701,7 @@ function Seccion({
 }) {
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">
+      <h2 className="text-lg font-bold">
         {titulo}
       </h2>
       {children}
@@ -745,7 +745,7 @@ function BotonConfirmar({
           setAbierto(false);
           onConfirmar();
         }}
-        className={`flex-1 rounded-xl py-3 font-semibold ${peligro ? "bg-red-500/90 text-white" : "bg-acento text-black"}`}
+        className={`flex-1 rounded-xl py-3 font-semibold ${peligro ? "bg-red-500/90 text-white" : "bg-acento text-white"}`}
       >
         {confirmar}
       </button>
@@ -840,7 +840,7 @@ function MiRespuesta({
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => setEligiendoHora(true)}
-            className="rounded-xl bg-acento py-4 text-lg font-bold text-black active:scale-[0.98]"
+            className="rounded-xl bg-acento py-4 text-lg font-bold text-white active:scale-[0.98]"
           >
             Voy
           </button>
@@ -869,7 +869,7 @@ function MiRespuesta({
                 onVoy(desdeInputLocal(valor));
                 setEligiendoHora(false);
               }}
-              className="rounded-xl bg-acento px-4 font-semibold text-black"
+              className="rounded-xl bg-acento px-4 font-semibold text-white"
             >
               Listo
             </button>
@@ -942,7 +942,7 @@ function FilaPresente({
                 setAbierto(false);
                 onSalida(new Date().toISOString());
               }}
-              className="rounded-xl bg-acento px-3 py-2 text-sm font-semibold text-black"
+              className="rounded-xl bg-acento px-3 py-2 text-sm font-semibold text-white"
             >
               Ahora
             </button>

@@ -202,7 +202,7 @@ export function JuegoBid({
   }
 
   const chip = (activo: boolean) =>
-    `rounded-full px-3 py-1.5 text-sm ${activo ? "bg-acento font-semibold text-black" : "bg-superficie text-texto-suave ring-1 ring-borde"}`;
+    `rounded-full px-3 py-1.5 text-sm ${activo ? "bg-acento font-semibold text-white" : "bg-superficie text-texto-suave ring-1 ring-borde"}`;
 
   // ---------- Pantallas ----------
   if (!empezado) {
@@ -228,13 +228,13 @@ export function JuegoBid({
         <button
           disabled={elegidos.length < 2 || elegidos.length > MAX_JUGADORES || guardando}
           onClick={empezar}
-          className="rounded-xl bg-acento py-3 font-bold text-black disabled:opacity-50"
+          className="rounded-xl bg-acento py-3 font-bold text-white disabled:opacity-50"
         >
           {elegidos.length > MAX_JUGADORES
             ? `Máximo ${MAX_JUGADORES} jugadores`
             : `Sortear el cuadro (${elegidos.length} jugadores)`}
         </button>
-        {error && <p className="text-sm text-red-400">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
     );
   }
@@ -274,7 +274,7 @@ export function JuegoBid({
   if (puestos && fase === "resultado") {
     return (
       <div className="flex flex-col items-center gap-4 text-center">
-        <Crown className="size-16 text-amber-300" />
+        <Crown className="size-16 text-amber-700" />
         <p className="text-sm uppercase tracking-widest text-texto-suave">Campeón de Bid Womens</p>
         <p className="text-4xl font-black">{apodo(puestos[0].perfil)}</p>
         {ultimo && (
@@ -292,7 +292,7 @@ export function JuegoBid({
             </div>
           ))}
         </div>
-        {error && <p className="text-sm text-red-400">No se pudo guardar: {error}</p>}
+        {error && <p className="text-sm text-red-600">No se pudo guardar: {error}</p>}
         <div className="w-full">{Cuadros}</div>
         <button
           onClick={() => {
@@ -301,7 +301,7 @@ export function JuegoBid({
             setTorneoId(null);
             setPuestos(null);
           }}
-          className="w-full rounded-xl bg-acento py-3 font-bold text-black"
+          className="w-full rounded-xl bg-acento py-3 font-bold text-white"
         >
           Otro torneo
         </button>
@@ -320,9 +320,9 @@ export function JuegoBid({
           <p className="text-sm text-texto-suave">{apodo(ultimo.perdedor)} pierde este duelo</p>
           {guardando && <Loader2 className="mx-auto mt-2 size-4 animate-spin" />}
         </div>
-        {error && <p className="text-sm text-red-400">No se pudo guardar el duelo: {error}</p>}
+        {error && <p className="text-sm text-red-600">No se pudo guardar el duelo: {error}</p>}
         {Cuadros}
-        <button onClick={nuevoDuelo} className="rounded-xl bg-acento py-3 font-bold text-black">
+        <button onClick={nuevoDuelo} className="rounded-xl bg-acento py-3 font-bold text-white">
           Siguiente duelo
         </button>
       </div>
@@ -366,7 +366,7 @@ export function JuegoBid({
               setMazo(mezclar(nombres.map((n) => n.trim())));
               setFase("subasta");
             }}
-            className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-bold text-black disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-bold text-white disabled:opacity-50"
           >
             <Shuffle className="size-5" /> Sortear y empezar la subasta
           </button>
@@ -415,7 +415,7 @@ export function JuegoBid({
                   key={j}
                   disabled={lleno || noAlcanza}
                   onClick={() => vender(j)}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-bold text-black disabled:opacity-40"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-bold text-white disabled:opacity-40"
                 >
                   <Gavel className="size-4" /> {apodo(j)}
                 </button>
@@ -471,7 +471,7 @@ export function JuegoBid({
                     key={lado}
                     disabled={guardando}
                     onClick={() => definirRonda(lado)}
-                    className="rounded-xl bg-acento py-3 font-bold text-black disabled:opacity-50"
+                    className="rounded-xl bg-acento py-3 font-bold text-white disabled:opacity-50"
                   >
                     {eleccion[lado]}
                   </button>

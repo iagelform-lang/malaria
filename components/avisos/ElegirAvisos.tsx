@@ -70,7 +70,7 @@ export function ElegirAvisos({ uid }: { uid: string }) {
                   <span className={prendido ? "" : "text-texto-suave"}>{g.titulo}</span>
                   <span className={`h-6 w-11 shrink-0 rounded-full p-0.5 transition ${prendido ? "bg-acento" : "bg-borde"}`}>
                     {ocupado === g.clave ? (
-                      <Loader2 className="size-5 animate-spin text-black" />
+                      <Loader2 className="size-5 animate-spin text-white" />
                     ) : (
                       <span className={`block size-5 rounded-full bg-white transition ${prendido ? "translate-x-5" : ""}`} />
                     )}

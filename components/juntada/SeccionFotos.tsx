@@ -99,14 +99,14 @@ export function SeccionFotos({
   return (
     <section className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-texto-suave">
+        <h2 className="flex items-center gap-1.5 text-lg font-bold">
           <Camera className="size-4" /> Fotos {fotos.length > 0 && `(${fotos.length})`}
         </h2>
         {puedeSubir && (
           <button
             onClick={() => entrada.current?.click()}
             disabled={subiendo > 0}
-            className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-black disabled:opacity-60"
+            className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-60"
           >
             {subiendo > 0 ? (
               <>
@@ -143,7 +143,7 @@ export function SeccionFotos({
           ))}
         </div>
       )}
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       {abierta && (
         <div className="fixed inset-0 z-50 flex flex-col bg-black/95" onClick={() => setAbierta(null)}>

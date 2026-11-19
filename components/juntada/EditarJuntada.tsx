@@ -169,7 +169,7 @@ export function EditarJuntada({
       )}
 
       {propuesta && (cambiaHora || cambiaLugar) && (
-        <p className="text-xs text-amber-300">
+        <p className="text-xs text-amber-700">
           Al guardar, a todos les llega un aviso con la hora y el lugar nuevos.
         </p>
       )}
@@ -179,12 +179,12 @@ export function EditarJuntada({
           los puntos.
         </p>
       )}
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       <button
         type="submit"
         disabled={ocupado || (!terminada && !nombre.trim())}
-        className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-black disabled:opacity-50"
+        className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-white disabled:opacity-50"
       >
         {ocupado && <Loader2 className="size-4 animate-spin" />} Guardar cambios
       </button>

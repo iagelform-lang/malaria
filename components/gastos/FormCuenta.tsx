@@ -118,12 +118,12 @@ export function FormCuenta({
           })}
         </div>
       </div>
-      {error && <p className="text-sm text-red-300">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="flex gap-2">
         <button
           disabled={!valido || ocupado}
           onClick={guardar}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-black disabled:opacity-50"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-white disabled:opacity-50"
         >
           {ocupado && <Loader2 className="size-4 animate-spin" />}
           {cuenta ? "Guardar" : "Crear cuenta"}

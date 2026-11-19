@@ -7,7 +7,7 @@ type Fila = { perfil_id: string; puntos: number; torneos: number; titulos: numbe
 export function TablaJuegos({ filas, apodos }: { filas: Fila[]; apodos: Record<string, string> }) {
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-texto-suave">
+      <h2 className="flex items-center gap-1.5 text-lg font-bold">
         <Crown className="size-4" /> Puntos de juegos
       </h2>
       <div className="flex flex-col gap-1 rounded-2xl border border-borde bg-superficie p-3">

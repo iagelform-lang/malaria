@@ -97,7 +97,7 @@ export function ActivarPush() {
   if (estado === "ios-sin-instalar")
     return (
       <div className={`${caja} border-amber-400/50 bg-amber-400/10`}>
-        <Smartphone className="mt-0.5 size-5 shrink-0 text-amber-300" />
+        <Smartphone className="mt-0.5 size-5 shrink-0 text-amber-700" />
         <p className="text-sm">
           En iPhone los avisos solo funcionan con la app instalada: en Safari tocá{" "}
           <b>Compartir → Agregar a pantalla de inicio</b>, abrila desde el ícono y volvé a esta pantalla.
@@ -130,11 +130,11 @@ export function ActivarPush() {
         <button
           onClick={activar}
           disabled={ocupado}
-          className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-black"
+          className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-white"
         >
           {ocupado && <Loader2 className="size-4 animate-spin" />} Activar avisos
         </button>
-        {error && <p className="text-sm text-red-400">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
     </div>
   );

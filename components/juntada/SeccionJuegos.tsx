@@ -89,14 +89,14 @@ export function SeccionJuegos({
   return (
     <section id="juegos" className="flex scroll-mt-4 flex-col gap-2">
       <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-texto-suave">
+        <h2 className="flex items-center gap-1.5 text-lg font-bold">
           <Dices className="size-4" /> Juegos{" "}
           {partidas.length > 0 && `(${partidas.length})`}
         </h2>
         {puedeCargar && (
           <Link
             href="/juegos"
-            className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-black"
+            className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-white"
           >
             <Plus className="size-4" /> Jugar
           </Link>
@@ -166,7 +166,7 @@ export function SeccionJuegos({
           </div>
         );
       })}
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </section>
   );
 }

@@ -28,14 +28,14 @@ export function TablaRanking({ stats, uid }: { stats: Estadistica[]; uid: string
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Ranking</h2>
+      <h2 className="text-lg font-bold">Ranking</h2>
       <div className="flex gap-2 overflow-x-auto pb-1">
         {ORDENES.map((o) => (
           <button
             key={o.clave}
             onClick={() => setOrden(o.clave)}
             className={`shrink-0 rounded-full px-3 py-1.5 text-sm ${
-              orden === o.clave ? "bg-acento font-semibold text-black" : "bg-superficie text-texto-suave"
+              orden === o.clave ? "bg-acento font-semibold text-white" : "bg-superficie text-texto-suave"
             }`}
           >
             {o.etiqueta}

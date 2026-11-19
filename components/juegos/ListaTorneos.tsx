@@ -46,7 +46,7 @@ export function ListaTorneos({
   if (!torneos.length) return null;
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Torneos</h2>
+      <h2 className="text-lg font-bold">Torneos</h2>
       {torneos.map((t) => {
         const pos = [...t.torneo_posiciones].sort((a, b) => a.puesto - b.puesto);
         const puede = esAdmin || t.cargado_por === uid;
@@ -70,7 +70,7 @@ export function ListaTorneos({
                       .join("  ")}
                   </p>
                 ) : (
-                  <p className="text-xs text-amber-300">Sin terminar · no suma puntos</p>
+                  <p className="text-xs text-amber-700">Sin terminar · no suma puntos</p>
                 )}
                 {pos.length > 0 && (
                   <p className="text-[11px] text-texto-suave">
@@ -102,7 +102,7 @@ export function ListaTorneos({
           </div>
         );
       })}
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </section>
   );
 }

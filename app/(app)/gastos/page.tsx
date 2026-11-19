@@ -49,7 +49,7 @@ async function Contenido() {
         }`}
       >
         <p className="text-sm text-texto-suave">Tu saldo, sumando todo</p>
-        <p className={`text-3xl font-bold ${mio <= -1 ? "text-red-300" : mio >= 1 ? "text-acento" : ""}`}>
+        <p className={`text-3xl font-bold ${mio <= -1 ? "text-red-600" : mio >= 1 ? "text-acento" : ""}`}>
           {mio <= -1 ? `Debés ${pesos(-mio)}` : mio >= 1 ? `Te deben ${pesos(mio)}` : "Estás al día"}
         </p>
         <p className="text-xs text-texto-suave">
@@ -58,7 +58,7 @@ async function Contenido() {
       </div>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Quién le paga a quién</h2>
+        <h2 className="text-lg font-bold">Quién le paga a quién</h2>
         <SaldoGeneral
           deudas={saldo.deudas}
           perfiles={perfiles}
@@ -69,7 +69,7 @@ async function Contenido() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Cuentas sueltas</h2>
+        <h2 className="text-lg font-bold">Cuentas sueltas</h2>
         {saldo.cuentas.map((c) => {
           const miParte = saldo.detalle.find((d) => d.clave === `/gastos/${c.id}`)?.saldos.get(uid!) ?? 0;
           return (
@@ -84,7 +84,7 @@ async function Contenido() {
                 <p className="text-xs text-texto-suave">{c.miembros.length} personas</p>
               </div>
               {Math.abs(miParte) >= 1 && (
-                <span className={`font-mono text-sm ${miParte < 0 ? "text-red-300" : "text-acento"}`}>
+                <span className={`font-mono text-sm ${miParte < 0 ? "text-red-600" : "text-acento"}`}>
                   {miParte < 0 ? "-" : "+"}
                   {pesos(Math.abs(miParte))}
                 </span>
@@ -107,7 +107,7 @@ async function Contenido() {
                 return (
                   <Link key={d.clave} href={d.clave} className="flex items-center justify-between gap-2">
                     <span className="truncate">{d.nombre}</span>
-                    <span className={`font-mono ${v < 0 ? "text-red-300" : "text-acento"}`}>
+                    <span className={`font-mono ${v < 0 ? "text-red-600" : "text-acento"}`}>
                       {v < 0 ? "-" : "+"}
                       {pesos(Math.abs(v))}
                     </span>

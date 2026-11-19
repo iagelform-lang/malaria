@@ -42,7 +42,7 @@ export function SeccionDuelos({
 
   return (
     <section id="duelos" className="flex scroll-mt-4 flex-col gap-2">
-      <h2 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-texto-suave">
+      <h2 className="flex items-center gap-1.5 text-lg font-bold">
         <Swords className="size-4" /> Duelos 1 vs 1
       </h2>
       {duelos.length === 0 ? (
@@ -58,7 +58,7 @@ export function SeccionDuelos({
                   key={j}
                   onClick={() => setFiltro(j)}
                   className={`rounded-full px-3 py-1 text-xs ${
-                    filtro === j ? "bg-acento font-semibold text-black" : "bg-superficie text-texto-suave ring-1 ring-borde"
+                    filtro === j ? "bg-acento font-semibold text-white" : "bg-superficie text-texto-suave ring-1 ring-borde"
                   }`}
                 >
                   {j === "todos" ? "Todos" : `${emojiJuego(j, catalogo)} ${j}`}
@@ -105,7 +105,7 @@ export function SeccionDuelos({
           })}
         </>
       )}
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </section>
   );
 }

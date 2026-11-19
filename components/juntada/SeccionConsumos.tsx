@@ -117,14 +117,14 @@ export function SeccionConsumos({ juntadaId, cuentaId, uid, puedeGestionar, perf
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">{esJuntada ? "Consumos" : "Gastos"}</h2>
+        <h2 className="text-lg font-bold">{esJuntada ? "Consumos" : "Gastos"}</h2>
         {puedeCargar && !formAbierto && (
           <button
             onClick={() => {
               setEditando(null);
               setFormAbierto(true);
             }}
-            className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-black"
+            className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-white"
           >
             <Plus className="size-4" /> Agregar
           </button>
@@ -293,7 +293,7 @@ export function SeccionConsumos({ juntadaId, cuentaId, uid, puedeGestionar, perf
                           `Listo: ${apodo(d.de)} le pagó ${pesos(d.monto)} a ${apodo(d.a)}.`,
                         )
                       }
-                      className="flex items-center gap-1 rounded-lg bg-acento px-2.5 py-1 text-xs font-semibold text-black"
+                      className="flex items-center gap-1 rounded-lg bg-acento px-2.5 py-1 text-xs font-semibold text-white"
                     >
                       <Check className="size-3.5" /> Saldado
                     </button>
@@ -404,7 +404,7 @@ function FormConsumo({
             key={t.clave}
             onClick={() => setTipo(t.clave)}
             className={`flex flex-col items-center rounded-xl py-2 text-xs ${
-              tipo === t.clave ? "bg-acento font-semibold text-black" : "bg-fondo text-texto-suave"
+              tipo === t.clave ? "bg-acento font-semibold text-white" : "bg-fondo text-texto-suave"
             }`}
           >
             <span className="text-lg">{t.emoji}</span>
@@ -480,7 +480,7 @@ function FormConsumo({
               entre: montoNum !== null && !todos ? entre : null,
             })
           }
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-black disabled:opacity-50"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-white disabled:opacity-50"
         >
           {ocupado && <Loader2 className="size-4 animate-spin" />}
           {inicial ? "Guardar cambios" : "Agregar"}

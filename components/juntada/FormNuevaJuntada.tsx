@@ -276,12 +276,12 @@ export function FormNuevaJuntada() {
         <button
           type="submit"
           disabled={guardando || !nombre.trim()}
-          className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black active:scale-[0.98] disabled:opacity-50"
+          className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-white active:scale-[0.98] disabled:opacity-50"
         >
           {guardando && <Loader2 className="size-5 animate-spin" />}
           {votarFecha ? "Abrir votación" : "Proponer"}
         </button>
-        {error && <p className="text-center text-sm text-red-400">{error}</p>}
+        {error && <p className="text-center text-sm text-red-600">{error}</p>}
       </form>
     </div>
   );

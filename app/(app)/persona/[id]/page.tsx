@@ -113,7 +113,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-2 text-center">
-        <div className="grid size-20 place-items-center rounded-full bg-acento text-3xl font-black text-black">
+        <div className="grid size-20 place-items-center rounded-full bg-acento text-3xl font-black text-white">
           {persona.apodo.slice(0, 1).toUpperCase()}
         </div>
         <h1 className="text-2xl font-bold">
@@ -175,7 +175,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
             {susDuelos.map((d) => (
               <Link key={d.rival} href={`/persona/${d.rival}`} className="flex justify-between rounded-xl bg-superficie px-3 py-2">
                 <span>vs {apodos[d.rival] ?? "?"}</span>
-                <b className={d.gano > d.perdio ? "text-acento" : d.gano < d.perdio ? "text-red-400" : ""}>
+                <b className={d.gano > d.perdio ? "text-acento" : d.gano < d.perdio ? "text-red-600" : ""}>
                   {d.gano} - {d.perdio}
                 </b>
               </Link>
@@ -230,7 +230,7 @@ function Dato({ valor, etiqueta }: { valor: string; etiqueta: string }) {
 function Bloque({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">{titulo}</h2>
+      <h2 className="text-lg font-bold">{titulo}</h2>
       {children}
     </section>
   );

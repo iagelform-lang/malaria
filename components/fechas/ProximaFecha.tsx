@@ -68,7 +68,7 @@ function Tarjeta({
     <div
       className={`overflow-hidden rounded-2xl ${
         festejo
-          ? "bg-gradient-to-br from-acento via-lime-300 to-amber-300 text-black"
+          ? "bg-gradient-to-br from-lime-300 via-lime-200 to-amber-200 text-black"
           : "border border-borde bg-superficie"
       }`}
     >
@@ -111,11 +111,11 @@ function Tarjeta({
           className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold ${
             misDias.size
               ? festejo
-                ? "bg-black text-acento"
+                ? "bg-black text-lime-300"
                 : "bg-acento/15 text-acento"
               : festejo
                 ? "bg-black text-white"
-                : "bg-acento text-black"
+                : "bg-acento text-white"
           }`}
         >
           {misDias.size ? (
@@ -153,7 +153,7 @@ function Tarjeta({
                   onClick={() => alternar(d)}
                   className={`flex flex-col items-center rounded-xl py-2 text-sm transition active:scale-95 disabled:opacity-40 ${
                     marcado
-                      ? "bg-acento font-bold text-black ring-2 ring-black/20"
+                      ? "bg-acento font-bold text-white ring-2 ring-black/20"
                       : festejo
                         ? "bg-white/60"
                         : "bg-fondo"

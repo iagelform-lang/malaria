@@ -144,7 +144,7 @@ export function VistaSondeo({
         >
           <ArrowLeft className="size-5" />
         </Link>
-        <span className="w-fit rounded-full bg-violet-500/15 px-2.5 py-0.5 text-xs font-medium text-violet-300">
+        <span className="w-fit rounded-full bg-violet-500/15 px-2.5 py-0.5 text-xs font-medium text-violet-700">
           Votando la fecha · ⭐ {nivelDe(sondeo.puntos ?? 10).nombre} · {sondeo.puntos ?? 10} pts
         </span>
         <h1 className="text-3xl font-bold leading-tight">{sondeo.nombre}</h1>
@@ -169,7 +169,7 @@ export function VistaSondeo({
       </div>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">
+        <h2 className="text-lg font-bold">
           Tocá las fechas que podés
         </h2>
         <p className="-mt-1 text-xs text-texto-suave">
@@ -196,7 +196,7 @@ export function VistaSondeo({
                   disabled={!abierto || ocupado !== null || pasada}
                   onClick={() => alternar(o)}
                   className={`grid size-9 shrink-0 place-items-center rounded-full ${
-                    mio ? "bg-acento text-black" : "bg-fondo ring-1 ring-borde"
+                    mio ? "bg-acento text-white" : "bg-fondo ring-1 ring-borde"
                   } disabled:opacity-50`}
                   aria-label={mio ? "Quitar mi voto" : "Puedo"}
                 >
@@ -232,7 +232,7 @@ export function VistaSondeo({
                   <button
                     disabled={ocupado !== null}
                     onClick={() => elegir(o)}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-acento py-2 text-sm font-bold text-black"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-acento py-2 text-sm font-bold text-white"
                   >
                     {ocupado === `e${o.id}` && (
                       <Loader2 className="size-4 animate-spin" />
@@ -265,7 +265,7 @@ export function VistaSondeo({
         </p>
       )}
 
-      {aviso && <p className="text-sm text-red-400">{aviso}</p>}
+      {aviso && <p className="text-sm text-red-600">{aviso}</p>}
 
       {puedeElegir && (
         <button

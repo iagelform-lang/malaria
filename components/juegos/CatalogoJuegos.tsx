@@ -56,18 +56,18 @@ export function CatalogoJuegos({
   }
 
   const chip = (activo: boolean) =>
-    `rounded-full px-3 py-1.5 text-sm ${activo ? "bg-acento font-semibold text-black" : "bg-fondo text-texto-suave ring-1 ring-borde"}`;
+    `rounded-full px-3 py-1.5 text-sm ${activo ? "bg-acento font-semibold text-white" : "bg-fondo text-texto-suave ring-1 ring-borde"}`;
 
   return (
     <section className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">
+        <h2 className="text-lg font-bold">
           Qué jugamos
         </h2>
         {!abierto && (
           <button
             onClick={() => setAbierto(true)}
-            className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-black"
+            className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-white"
           >
             <Plus className="size-4" /> Agregar juego
           </button>
@@ -121,11 +121,11 @@ export function CatalogoJuegos({
               Por equipos
             </button>
           </div>
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             disabled={!nombre.trim() || ocupado !== null}
             onClick={agregar}
-            className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-black disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-white disabled:opacity-50"
           >
             {ocupado === "nuevo" && <Loader2 className="size-4 animate-spin" />}{" "}
             Agregar
@@ -170,7 +170,7 @@ export function CatalogoJuegos({
           );
         })}
       </div>
-      {!abierto && error && <p className="text-sm text-red-400">{error}</p>}
+      {!abierto && error && <p className="text-sm text-red-600">{error}</p>}
     </section>
   );
 }

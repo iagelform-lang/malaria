@@ -37,7 +37,7 @@ export function CampoComida({
               onClick={() => cambiar(c)}
               className={`rounded-full px-3 py-1 text-sm ${
                 valor.trim().toLowerCase() === c.toLowerCase()
-                  ? "bg-acento font-semibold text-black"
+                  ? "bg-acento font-semibold text-white"
                   : "bg-fondo text-texto-suave ring-1 ring-borde"
               }`}
             >

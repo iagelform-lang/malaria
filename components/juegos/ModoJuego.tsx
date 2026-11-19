@@ -12,7 +12,7 @@ export function ModoJuego(props: {
 }) {
   const [modo, setModo] = useState<"torneo" | "duelo">("torneo");
   const chip = (activo: boolean) =>
-    `flex-1 rounded-xl py-2.5 text-sm font-semibold ${activo ? "bg-acento text-black" : "bg-superficie text-texto-suave ring-1 ring-borde"}`;
+    `flex-1 rounded-xl py-2.5 text-sm font-semibold ${activo ? "bg-acento text-white" : "bg-superficie text-texto-suave ring-1 ring-borde"}`;
   return (
     <div className="flex flex-col gap-4">
       <div className="flex gap-2">

@@ -60,7 +60,7 @@ export function CargarPuestos({
   }
 
   const chip = (activo: boolean) =>
-    `rounded-full px-3 py-1.5 text-sm ${activo ? "bg-acento font-semibold text-black" : "bg-superficie text-texto-suave ring-1 ring-borde"}`;
+    `rounded-full px-3 py-1.5 text-sm ${activo ? "bg-acento font-semibold text-white" : "bg-superficie text-texto-suave ring-1 ring-borde"}`;
 
   if (paso === "listo") {
     return (
@@ -70,7 +70,7 @@ export function CargarPuestos({
           <p className="text-3xl font-black">{apodo(orden[0])}</p>
         </div>
         <TablaFinal orden={orden} apodo={apodo} />
-        <button onClick={() => router.push("/juegos")} className="rounded-xl bg-acento py-3 font-bold text-black">
+        <button onClick={() => router.push("/juegos")} className="rounded-xl bg-acento py-3 font-bold text-white">
           Listo
         </button>
       </div>
@@ -101,7 +101,7 @@ export function CargarPuestos({
             setOrden([]);
             setPaso("puestos");
           }}
-          className="rounded-xl bg-acento py-3 font-bold text-black disabled:opacity-50"
+          className="rounded-xl bg-acento py-3 font-bold text-white disabled:opacity-50"
         >
           {jugadores.length > MAX_JUGADORES ? `Máximo ${MAX_JUGADORES} jugadores` : `Cargar puestos (${jugadores.length})`}
         </button>
@@ -145,12 +145,12 @@ export function CargarPuestos({
         <button
           disabled={faltan.length > 0 || ocupado}
           onClick={guardar}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-acento py-3 font-bold text-black disabled:opacity-50"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-acento py-3 font-bold text-white disabled:opacity-50"
         >
           {ocupado && <Loader2 className="size-4 animate-spin" />} Guardar y sumar puntos
         </button>
       </div>
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 

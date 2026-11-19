@@ -214,7 +214,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
                 {hora(p.llegada)} → {p.salida ? hora(p.salida) : "—"}
                 {p.olvido && " · no escaneó la salida"}
               </p>
-              <p className={`text-xs ${p.puntual ? "text-acento" : "text-red-300"}`}>
+              <p className={`text-xs ${p.puntual ? "text-acento" : "text-red-600"}`}>
                 {p.puntual ? "A tiempo" : "Llegó tarde"}
                 {p.promesa && ` (dijo ${hora(p.promesa)})`}
               </p>
@@ -228,7 +228,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
         <div className="flex flex-col gap-1 rounded-2xl border border-borde p-3 text-sm">
           {plantaron.length > 0 && (
             <p>
-              <span className="text-red-300">🤥 Dijeron que iban y no fueron: </span>
+              <span className="text-red-600">🤥 Dijeron que iban y no fueron: </span>
               {plantaron.map((c) => apodo(c.perfil_id)).join(", ")}
             </p>
           )}
@@ -315,7 +315,7 @@ function Dato({ valor, etiqueta }: { valor: string; etiqueta: string }) {
 function Seccion({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">{titulo}</h2>
+      <h2 className="text-lg font-bold">{titulo}</h2>
       {children}
     </section>
   );

@@ -111,7 +111,7 @@ async function Contenido() {
       />
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">
+        <h2 className="text-lg font-bold">
           Campeón de los juegos
         </h2>
         <TablaJuegos filas={tablaJ} apodos={apodos} />

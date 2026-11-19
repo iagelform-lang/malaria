@@ -28,7 +28,7 @@ export function RankingPuntos({
   const puesto = (i: number) => filas.findIndex((f) => f.puntos === filas[i].puntos);
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-texto-suave">
+      <h2 className="flex items-center gap-1.5 text-lg font-bold">
         <Star className="size-4" /> Tabla de puntos
       </h2>
       <div className="flex flex-col gap-1 rounded-2xl border border-borde bg-superficie p-3">

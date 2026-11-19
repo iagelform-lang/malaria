@@ -104,11 +104,11 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
   return (
     <section className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Fechas del grupo</h2>
+        <h2 className="text-lg font-bold">Fechas del grupo</h2>
         {!abierto && (
           <button
             onClick={() => setAbierto(true)}
-            className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-black"
+            className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-white"
           >
             <Plus className="size-4" /> Agregar
           </button>
@@ -177,12 +177,12 @@ export function FechasGrupo({ fechas, esAdmin, uid }: { fechas: FechaEspecial[];
             className="rounded-xl border border-borde bg-fondo px-3 py-3 text-sm outline-none focus:border-acento"
           />
           <ElegirPuntos valor={puntos} cambiar={setPuntos} etiqueta="Puntos para los que marcan Voy" />
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-2">
             <button
               disabled={!nombre.trim() || ocupado || (desde !== "" && desde.length !== 4)}
               onClick={guardar}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-black disabled:opacity-50"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-white disabled:opacity-50"
             >
               {ocupado && <Loader2 className="size-4 animate-spin" />} {editando ? "Guardar cambios" : "Guardar"}
             </button>

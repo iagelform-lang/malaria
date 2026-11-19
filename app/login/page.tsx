@@ -141,7 +141,7 @@ export default function LoginPage() {
           </form>
         )}
 
-        {error && <p className="mt-4 text-center text-sm text-red-400">{error}</p>}
+        {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
       </div>
     </main>
   );
@@ -160,7 +160,7 @@ function BotonPrincipal({
     <button
       type="submit"
       disabled={cargando || deshabilitado}
-      className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-black transition active:scale-[0.98] disabled:opacity-50"
+      className="flex items-center justify-center gap-2 rounded-xl bg-acento py-4 text-lg font-semibold text-white transition active:scale-[0.98] disabled:opacity-50"
     >
       {cargando && <Loader2 className="size-5 animate-spin" />}
       {children}

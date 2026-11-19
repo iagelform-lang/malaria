@@ -107,7 +107,7 @@ export function ListaGrupo({ miembros, uid, esAdmin }: { miembros: Miembro[]; ui
                   disabled={ocupado}
                   onClick={() => ejecutar(confirmando, m.apodo)}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold ${
-                    confirmando.tipo === "desactivar" ? "bg-red-500/90 text-white" : "bg-acento text-black"
+                    confirmando.tipo === "desactivar" ? "bg-red-500/90 text-white" : "bg-acento text-white"
                   }`}
                 >
                   {ocupado && <Loader2 className="size-4 animate-spin" />}
@@ -132,7 +132,7 @@ export function ListaGrupo({ miembros, uid, esAdmin }: { miembros: Miembro[]; ui
                     key={tipo}
                     onClick={() => setConfirmando({ perfilId: m.id, tipo })}
                     className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm ${
-                      tipo === "desactivar" ? "border-red-500/40 text-red-300" : "border-borde"
+                      tipo === "desactivar" ? "border-red-500/40 text-red-600" : "border-borde"
                     }`}
                   >
                     <Icono className="size-4" /> {TEXTOS[tipo].boton}
@@ -158,7 +158,7 @@ export function ListaGrupo({ miembros, uid, esAdmin }: { miembros: Miembro[]; ui
       )}
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Miembros · {activos.length}</h2>
+        <h2 className="text-lg font-bold">Miembros · {activos.length}</h2>
         {esAdmin && <p className="-mt-1 text-xs text-texto-suave">Tocá a alguien para hacerlo admin o desactivarlo.</p>}
         {activos.map((m) => (
           <Fila key={m.id} m={m} />
@@ -167,7 +167,7 @@ export function ListaGrupo({ miembros, uid, esAdmin }: { miembros: Miembro[]; ui
 
       {esAdmin && inactivos.length > 0 && (
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">
+          <h2 className="text-lg font-bold">
             Desactivados · {inactivos.length}
           </h2>
           {inactivos.map((m) => (

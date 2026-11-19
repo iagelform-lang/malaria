@@ -25,7 +25,7 @@ export function Solapas({
               key={s.clave}
               onClick={() => setActiva(s.clave)}
               className={`rounded-full px-3.5 py-1.5 text-sm ${
-                activa === s.clave ? "bg-acento font-semibold text-black" : "bg-superficie text-texto-suave ring-1 ring-borde"
+                activa === s.clave ? "bg-acento font-semibold text-white" : "bg-superficie text-texto-suave ring-1 ring-borde"
               }`}
             >
               {s.titulo}

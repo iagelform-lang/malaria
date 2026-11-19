@@ -73,7 +73,7 @@ export function SeccionLlevar({
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-texto-suave">
+      <h2 className="flex items-center gap-1.5 text-lg font-bold">
         <ShoppingBag className="size-4" /> Qué llevar
       </h2>
 
@@ -88,7 +88,7 @@ export function SeccionLlevar({
           <div key={i.id} className="flex items-center gap-2 rounded-xl bg-superficie px-3 py-2.5">
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{i.item}</p>
-              <p className={`text-xs ${libre ? "text-amber-300" : "text-texto-suave"}`}>
+              <p className={`text-xs ${libre ? "text-amber-700" : "text-texto-suave"}`}>
                 {libre ? "Nadie lo lleva todavía" : mio ? "Lo llevás vos" : `Lo lleva ${apodo(i.perfil_id)}`}
               </p>
             </div>
@@ -99,7 +99,7 @@ export function SeccionLlevar({
                   correr(i.id, () => supabase.from("llevar").update({ perfil_id: libre ? uid : null }).eq("id", i.id))
                 }
                 className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${
-                  libre ? "bg-acento text-black" : "bg-fondo text-texto-suave ring-1 ring-borde"
+                  libre ? "bg-acento text-white" : "bg-fondo text-texto-suave ring-1 ring-borde"
                 }`}
               >
                 {ocupado === i.id ? <Loader2 className="size-3.5 animate-spin" /> : libre ? "Lo llevo yo" : "Ya no"}
@@ -138,7 +138,7 @@ export function SeccionLlevar({
             <button
               type="submit"
               disabled={!nuevo.trim() || ocupado !== null}
-              className="rounded-xl bg-acento px-3 text-black disabled:opacity-50"
+              className="rounded-xl bg-acento px-3 text-white disabled:opacity-50"
               aria-label="Agregar"
             >
               {ocupado === "nuevo" ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
@@ -160,7 +160,7 @@ export function SeccionLlevar({
           )}
         </>
       )}
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </section>
   );
 }

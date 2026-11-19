@@ -82,7 +82,7 @@ export function SaldoGeneral({
                       `Listo: ${apodo(d.de)} le pagó ${pesos(d.monto)} a ${apodo(d.a)}.`,
                     )
                   }
-                  className="flex items-center gap-1 rounded-lg bg-acento px-2.5 py-1.5 text-xs font-semibold text-black disabled:opacity-50"
+                  className="flex items-center gap-1 rounded-lg bg-acento px-2.5 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
                 >
                   {ocupado === clave ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}{" "}
                   Saldado

@@ -15,7 +15,7 @@ export function Campana() {
       href="/avisos"
       aria-label={noLeidos ? `Avisos (${noLeidos} sin leer)` : "Avisos"}
       className={`fixed right-[max(1rem,calc((100vw-28rem)/2+1rem))] top-[calc(env(safe-area-inset-top)+0.75rem)] z-30 grid size-10 place-items-center rounded-full bg-superficie/90 ring-1 ring-borde backdrop-blur ${
-        activa ? "text-acento" : "text-texto-suave"
+        activa ? "text-acento" : "text-texto"
       }`}
     >
       <Bell className="size-5" />

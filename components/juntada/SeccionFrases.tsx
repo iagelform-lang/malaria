@@ -100,13 +100,13 @@ export function SeccionFrases({
   return (
     <section className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-texto-suave">
+        <h2 className="flex items-center gap-1.5 text-lg font-bold">
           <Quote className="size-4" /> Frases {frases.length > 0 && `(${frases.length})`}
         </h2>
         {puedeCargar && !abierto && (
           <button
             onClick={() => setAbierto(true)}
-            className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-black"
+            className="flex items-center gap-1 rounded-full bg-acento px-3 py-1.5 text-sm font-semibold text-white"
           >
             + Frase
           </button>
@@ -144,7 +144,7 @@ export function SeccionFrases({
           <button
             disabled={!quien || !texto.trim() || ocupado !== null}
             onClick={guardar}
-            className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-black disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-white disabled:opacity-50"
           >
             {ocupado === "nueva" && <Loader2 className="size-4 animate-spin" />} Guardar frase
           </button>
@@ -169,7 +169,7 @@ export function SeccionFrases({
               disabled={ocupado !== null}
               onClick={() => votar(f)}
               className={`flex items-center gap-1 rounded-full px-2 py-1 text-sm ${
-                mio ? "bg-rose-500/20 text-rose-300" : "text-texto-suave"
+                mio ? "bg-rose-500/20 text-rose-700" : "text-texto-suave"
               }`}
               aria-label={mio ? "Quitar me gusta" : "Me gusta"}
             >
@@ -193,7 +193,7 @@ export function SeccionFrases({
           </div>
         );
       })}
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </section>
   );
 }

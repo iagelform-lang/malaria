@@ -124,7 +124,7 @@ async function Contenido({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-3xl bg-gradient-to-br from-acento via-lime-300 to-amber-300 p-6 text-black">
+      <div className="rounded-3xl bg-gradient-to-br from-lime-300 via-lime-200 to-amber-200 p-6 text-black">
         <p className="text-sm font-semibold uppercase tracking-widest">
           Malaria Wrapped
         </p>

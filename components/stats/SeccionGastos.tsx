@@ -38,7 +38,7 @@ export function SeccionGastos({ juntadas, asistencias, exclusiones, consumos, ap
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-texto-suave">Comida y gastos</h2>
+        <h2 className="text-lg font-bold">Comida y gastos</h2>
       </div>
       <div className="flex gap-2">
         {PERIODOS.map((p) => (
@@ -46,7 +46,7 @@ export function SeccionGastos({ juntadas, asistencias, exclusiones, consumos, ap
             key={p.clave}
             onClick={() => setPeriodo(p.clave)}
             className={`rounded-full px-3 py-1.5 text-sm ${
-              periodo === p.clave ? "bg-acento font-semibold text-black" : "bg-superficie text-texto-suave"
+              periodo === p.clave ? "bg-acento font-semibold text-white" : "bg-superficie text-texto-suave"
             }`}
           >
             {p.etiqueta}

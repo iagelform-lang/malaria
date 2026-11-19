@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
-/* Modo oscuro siempre: la app no tiene modo claro */
+/* Modo claro: fondo gris muy suave, tarjetas blancas, texto bien oscuro */
 :root {
-  --fondo: #0b0b0f;
-  --superficie: #16161d;
-  --borde: #26262f;
-  --texto: #f4f4f5;
-  --texto-suave: #a1a1aa;
-  --acento: #a3e635;
-  color-scheme: dark;
+  --fondo: #f4f4f5;
+  --superficie: #ffffff;
+  --borde: #e4e4e7;
+  --texto: #18181b;
+  --texto-suave: #52525b;
+  --acento: #15803d;
+  color-scheme: light;
 }
 
 @theme inline {
