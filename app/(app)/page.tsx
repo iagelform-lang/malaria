@@ -8,6 +8,7 @@ import { ProximaFecha, type Voy } from "@/components/fechas/ProximaFecha";
 import { usuarioActual } from "@/lib/sesion";
 import { CartelAvisos } from "@/components/inicio/CartelAvisos";
 import { CartelNovedades } from "@/components/inicio/CartelNovedades";
+import { QrLlegada } from "@/components/inicio/QrLlegada";
 import { cargarSaldoGeneral } from "@/lib/saldoServidor";
 import { pesos } from "@/lib/cuentas";
 
@@ -80,6 +81,13 @@ async function Listado() {
   );
 
   const estoyAdentro = !!activa && activa.asistencias.some((a) => a.perfil_id === uid);
+  // arrancó, dije que iba y todavía no me escanearon: el QR va primero
+  const dijeQueVoy = !!activa && activa.confirmaciones.some((c) => c.perfil_id === uid && c.va);
+  let miToken: string | null = null;
+  if (activa && !estoyAdentro && dijeQueVoy && uid && activa.anfitrion_id !== uid) {
+    const { data } = await supabase.from("credenciales_qr").select("token").eq("perfil_id", uid).single();
+    miToken = data?.token ?? null;
+  }
   const porResponder = pendientes.filter((j) => j.id !== activa?.id);
   const idsPendientes = new Set(porResponder.map((j) => j.id));
   const proximas = prox.filter((j) => !idsPendientes.has(j.id));
@@ -87,6 +95,7 @@ async function Listado() {
 
   return (
     <div className="flex flex-col gap-6">
+      {activa && miToken && <QrLlegada uid={uid!} token={miToken} nombre={activa.nombre} />}
       <CartelAvisos />
       <CartelNovedades />
 
@@ -138,9 +147,14 @@ async function Listado() {
             </span>
           </p>
           </Link>
-          <Link href="/perfil" className="mt-1 rounded-xl bg-acento py-3 text-center font-bold text-white active:scale-[0.99]">
-            Llegué: mostrar mi QR
-          </Link>
+          {!miToken && (
+            <Link
+              href="/perfil"
+              className="mt-1 rounded-xl bg-acento py-3 text-center font-bold text-white active:scale-[0.99]"
+            >
+              Llegué: mostrar mi QR
+            </Link>
+          )}
         </div>
       )}
 
