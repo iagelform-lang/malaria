@@ -13,6 +13,7 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(datos.titulo || "Malaria 3.0", {
       body: datos.cuerpo || "",
       icon: "/icons/icon-192.png",
+      image: datos.imagen || undefined,
       badge: "/icons/icon-192.png",
       data: { url: datos.url || "/" },
       tag: datos.url || undefined,

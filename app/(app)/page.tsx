@@ -9,6 +9,7 @@ import { usuarioActual } from "@/lib/sesion";
 import { CartelAvisos } from "@/components/inicio/CartelAvisos";
 import { CartelNovedades } from "@/components/inicio/CartelNovedades";
 import { QrLlegada } from "@/components/inicio/QrLlegada";
+import { CuentaRegresiva } from "@/components/inicio/CuentaRegresiva";
 import { cargarSaldoGeneral } from "@/lib/saldoServidor";
 import { pesos } from "@/lib/cuentas";
 
@@ -80,6 +81,8 @@ async function Listado() {
     (j) => !j.confirmaciones.some((c) => c.perfil_id === uid) && !j.asistencias.some((a) => a.perfil_id === uid),
   );
 
+  // eslint-disable-next-line react-hooks/purity -- la fecha de hoy se calcula al pedir la página
+  const hoyBA = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).format(new Date());
   const estoyAdentro = !!activa && activa.asistencias.some((a) => a.perfil_id === uid);
   // arrancó, dije que iba y todavía no me escanearon: el QR va primero
   const dijeQueVoy = !!activa && activa.confirmaciones.some((c) => c.perfil_id === uid && c.va);
@@ -155,6 +158,7 @@ async function Listado() {
         </div>
       )}
 
+      <CuentaRegresiva fechas={(fechas as FechaEspecial[]) ?? []} hoyBA={hoyBA} />
       <CartelAvisos />
       <CartelNovedades />
 

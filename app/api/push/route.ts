@@ -5,7 +5,15 @@ import { CLAVE_PUBLICA_PUSH } from "@/lib/push";
 // Recibe desde Supabase (job cada minuto) los avisos pendientes y los reenvía a cada celular.
 // Protegido con una clave compartida (PUSH_SECRET) que solo conocen Supabase y Vercel.
 
-type Item = { endpoint: string; p256dh: string; auth: string; titulo: string; cuerpo: string; url: string };
+type Item = {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  titulo: string;
+  cuerpo: string;
+  url: string;
+  imagen?: string | null;
+};
 
 export async function POST(request: NextRequest) {
   const secreto = process.env.PUSH_SECRET;
@@ -22,7 +30,7 @@ export async function POST(request: NextRequest) {
     (items ?? []).map((i) =>
       webpush.sendNotification(
         { endpoint: i.endpoint, keys: { p256dh: i.p256dh, auth: i.auth } },
-        JSON.stringify({ titulo: i.titulo, cuerpo: i.cuerpo, url: i.url }),
+        JSON.stringify({ titulo: i.titulo, cuerpo: i.cuerpo, url: i.url, imagen: i.imagen ?? undefined }),
         { TTL: 60 * 60 },
       ),
     ),

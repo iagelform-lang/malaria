@@ -12,6 +12,7 @@ const GRUPOS = [
   { clave: "cambio", titulo: "Cambios de hora o lugar", tipos: ["cambio"] },
   { clave: "arranque", titulo: "Arranque y fin de la juntada", tipos: ["iniciada", "finalizada"] },
   { clave: "wrapped", titulo: "Wrapped del año", tipos: ["wrapped"] },
+  { clave: "cuenta", titulo: "Cuenta regresiva del Malariaso (1 por día)", tipos: ["cuenta"] },
 ];
 
 /** Interruptores para elegir qué avisos suenan en el celular */
