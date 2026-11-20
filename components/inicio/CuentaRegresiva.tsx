@@ -1,3 +1,4 @@
+import { FotoAmpliable } from "@/components/inicio/FotoAmpliable";
 import { diasQueFaltan, fotoDelDia, FOTOS, NOMBRE_EVENTO, type FechaParaCuenta } from "@/lib/cuentaRegresiva";
 
 /** Tarjeta grande en Inicio: "Faltan X días para El Malariaso" con la foto del día */
@@ -14,19 +15,7 @@ export function CuentaRegresiva({ fechas, hoyBA }: { fechas: FechaParaCuenta[]; 
 
   return (
     <div className="overflow-hidden rounded-3xl bg-superficie shadow-sm ring-1 ring-borde">
-      {foto && (
-        // la foto entera, sin recortes; lo que sobra se rellena con la misma foto desenfocada
-        <div className="relative aspect-[4/5] max-h-[65vh] w-full overflow-hidden bg-black">
-          {/* eslint-disable-next-line @next/next/no-img-element -- fondo decorativo */}
-          <img src={foto} alt="" aria-hidden className="absolute inset-0 size-full scale-110 object-cover opacity-60 blur-2xl" />
-          {/* eslint-disable-next-line @next/next/no-img-element -- foto estática ya optimizada */}
-          <img
-            src={foto}
-            alt={`Cuenta regresiva: faltan ${faltan} días`}
-            className="relative size-full object-contain"
-          />
-        </div>
-      )}
+      {foto && <FotoAmpliable src={foto} alt={`Cuenta regresiva: faltan ${faltan} días`} />}
       <div className="flex items-center gap-4 p-4">
         {faltan > 0 ? (
           <>
