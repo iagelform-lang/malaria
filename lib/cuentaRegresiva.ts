@@ -5,7 +5,7 @@
 export const CARPETA = "cr-db6d31288d68";
 
 /** Números de foto cargados (días que faltan). Se completa al subir las fotos. */
-export const FOTOS: number[] = [];
+export const FOTOS: number[] = Array.from({ length: 33 }, (_, i) => i); // 00 a 32
 
 /** El evento al que apunta la cuenta (se busca por nombre en las fechas del grupo) */
 export const NOMBRE_EVENTO = /malariaso/i;
