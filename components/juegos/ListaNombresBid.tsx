@@ -42,14 +42,14 @@ export function ListaNombresBid({
   }
 
   return (
-    <details className="rounded-2xl border border-borde bg-superficie p-3">
-      <summary className="cursor-pointer font-semibold">
-        📋 Lista de nombres <span className="font-normal text-texto-suave">({lista.length})</span>
-      </summary>
-      <div className="mt-3 flex flex-col gap-3">
+    <section className="flex flex-col gap-3 rounded-2xl border border-borde bg-superficie p-4">
+      <h2 className="text-lg font-bold">
+        👠 Nombres <span className="font-normal text-texto-suave">({lista.length})</span>
+      </h2>
+      <div className="flex flex-col gap-3">
         <p className="text-sm text-texto-suave">
-          Cargá nombres cuando quieras. Lo que escriban en una partida se suma solo. Con 10 o más, al jugar se pueden
-          tirar al azar desde acá.
+          Dejalos cargados acá: al jugar, la app tira 10 al azar de esta lista. Cualquiera puede agregar o borrar, y lo
+          que se escribe en una partida también se suma.
         </p>
         <div className="flex gap-2">
           <input
@@ -88,6 +88,6 @@ export function ListaNombresBid({
           </div>
         )}
       </div>
-    </details>
+    </section>
   );
 }
