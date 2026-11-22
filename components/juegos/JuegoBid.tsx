@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Crown, Gavel, Loader2, Minus, Plus, RotateCcw, Shuffle, Trophy, Undo2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Crown, Dices, Gavel, Loader2, Minus, Plus, RotateCcw, Shuffle, Trophy, Undo2 } from "lucide-react";
+import { ListaNombresBid, type NombreBid } from "@/components/juegos/ListaNombresBid";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { mensajeError } from "@/lib/errores";
 import {
@@ -23,8 +24,8 @@ import {
  *  3. Al mejor de 5: cada uno presenta una de las suyas y los que miran eligen cuál gana.
  *  4. Torneo eliminatorio sorteado: (cuartos) → semis → tercer puesto → final.
  *     Puntos para el campeón de los juegos: 1º 100 · 2º 55 · 3º 40 · 4º 25 · 5º a 8º 10.
- * Los nombres NUNCA se guardan: viven solo en este celular mientras dura el duelo.
- * Lo único que se guarda es la partida (quién jugó, quién ganó y el resultado).
+ * Los nombres van a una lista compartida del grupo (bid_nombres): lo que se escribe se suma solo,
+ * y con 10 o más se pueden tirar al azar desde la lista en lugar de escribirlos.
  */
 
 const PRESUPUESTO = 15;
@@ -52,6 +53,17 @@ export function JuegoBid({
 }) {
   const supabase = useMemo(() => crearClienteNavegador(), []);
   const apodo = (id: string) => perfiles.find((p) => p.id === id)?.apodo ?? "?";
+
+  // lista compartida de nombres
+  const [lista, setLista] = useState<NombreBid[]>([]);
+  const cargarLista = useCallback(async () => {
+    const { data } = await supabase.from("bid_nombres").select("id, nombre");
+    if (data) setLista(data as NombreBid[]);
+  }, [supabase]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de la lista
+    cargarLista();
+  }, [cargarLista]);
 
   // torneo
   const [elegidos, setElegidos] = useState<string[]>([]);
@@ -158,7 +170,7 @@ export function JuegoBid({
     if (!duelo) return;
     setGuardando(true);
     setError(null);
-    // se guarda solo quién jugó y quién ganó: los nombres no salen de este celular
+    // la partida guarda quién jugó y quién ganó (los nombres van aparte, a la lista del grupo)
     const { data, error } = await supabase
       .from("partidas")
       .insert({ juntada_id: juntadaId, juego: "Bid Womens", resultado: marcador, torneo_id: torneoId })
@@ -185,7 +197,7 @@ export function JuegoBid({
       await guardarTorneo(fin);
     }
     setUltimo({ ganador, perdedor, marcador });
-    // los nombres se descartan
+    // los nombres de este duelo ya están en la lista; se limpia para el próximo
     setNombres(Array(NOMBRES).fill(""));
     setMazo([]);
     setCompras([]);
@@ -209,7 +221,7 @@ export function JuegoBid({
     return (
       <div className="flex flex-col gap-4">
         <p className="text-sm text-texto-suave">
-          ¿Quiénes juegan? El resto carga los nombres y vota. Se juega desde este celular y los nombres no se guardan.
+          ¿Quiénes juegan? El resto carga los nombres y vota. Se juega desde este celular.
         </p>
         <div className="flex flex-wrap gap-2">
           {perfiles.map((p) => {
@@ -235,6 +247,7 @@ export function JuegoBid({
             : `Sortear el cuadro (${elegidos.length} jugadores)`}
         </button>
         {error && <p className="text-sm text-red-600">{error}</p>}
+        <ListaNombresBid supabase={supabase} lista={lista} onCambio={cargarLista} />
       </div>
     );
   }
@@ -344,8 +357,23 @@ export function JuegoBid({
       {fase === "nombres" && (
         <div className="flex flex-col gap-3">
           <p className="text-sm text-texto-suave">
-            Los que no juegan cargan {NOMBRES} nombres (que no miren {apodo(duelo.a)} ni {apodo(duelo.b)}).
+            Tirá {NOMBRES} al azar de la lista del grupo, o escribilos abajo (que no miren {apodo(duelo.a)} ni{" "}
+            {apodo(duelo.b)}). Lo que escriban se suma a la lista.
           </p>
+          <button
+            disabled={lista.length < NOMBRES}
+            onClick={() => {
+              // salen directo a la subasta, sin mostrarlos antes (así los que juegan no los ven)
+              setMazo(mezclar(lista.map((n) => n.nombre)).slice(0, NOMBRES));
+              setFase("subasta");
+            }}
+            className="flex items-center justify-center gap-2 rounded-xl border-2 border-acento py-3 font-bold text-acento disabled:border-borde disabled:text-texto-suave"
+          >
+            <Dices className="size-5" />
+            {lista.length >= NOMBRES
+              ? `Tirar ${NOMBRES} al azar y empezar (hay ${lista.length})`
+              : `Tirar de la lista (faltan ${NOMBRES - lista.length} nombres)`}
+          </button>
           {nombres.map((n, i) => (
             <input
               key={i}
@@ -363,8 +391,17 @@ export function JuegoBid({
           <button
             disabled={nombres.some((n) => !n.trim())}
             onClick={() => {
-              setMazo(mezclar(nombres.map((n) => n.trim())));
+              const limpios = nombres.map((n) => n.trim());
+              setMazo(mezclar(limpios));
               setFase("subasta");
+              // lo escrito se suma a la lista compartida (los repetidos se ignoran)
+              supabase
+                .from("bid_nombres")
+                .upsert(
+                  limpios.map((nombre) => ({ nombre })),
+                  { onConflict: "clave", ignoreDuplicates: true },
+                )
+                .then(() => cargarLista());
             }}
             className="flex items-center justify-center gap-2 rounded-xl bg-acento py-3 font-bold text-white disabled:opacity-50"
           >
