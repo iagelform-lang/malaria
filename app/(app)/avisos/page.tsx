@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { CalendarHeart, CalendarPlus, Flag, Play, Vote, BellRing, CalendarClock, CalendarRange, Gift, Timer } from "lucide-react";
+import { Bell, CalendarHeart, CalendarPlus, Flag, Play, Vote, BellRing, CalendarClock, CalendarRange, Gift, Hourglass, Timer } from "lucide-react";
 import { usuarioActual } from "@/lib/sesion";
 import { fechaYHora } from "@/lib/tiempo";
 import { ActivarPush } from "@/components/avisos/ActivarPush";
@@ -9,7 +9,7 @@ import { ElegirAvisos } from "@/components/avisos/ElegirAvisos";
 
 type Aviso = {
   id: number;
-  tipo: "creada" | "iniciada" | "finalizada" | "evento" | "voto" | "recordatorio" | "cambio" | "llegada" | "sondeo" | "wrapped";
+  tipo: "creada" | "iniciada" | "finalizada" | "evento" | "voto" | "recordatorio" | "cambio" | "llegada" | "sondeo" | "wrapped" | "cuenta";
   titulo: string;
   cuerpo: string;
   url: string;
@@ -17,7 +17,7 @@ type Aviso = {
   creado_en: string;
 };
 
-const ICONO = { creada: CalendarPlus, iniciada: Play, finalizada: Flag, evento: CalendarHeart, voto: Vote, recordatorio: BellRing, cambio: CalendarClock, llegada: Timer, sondeo: CalendarRange, wrapped: Gift };
+const ICONO = { creada: CalendarPlus, iniciada: Play, finalizada: Flag, evento: CalendarHeart, voto: Vote, recordatorio: BellRing, cambio: CalendarClock, llegada: Timer, sondeo: CalendarRange, wrapped: Gift, cuenta: Hourglass };
 
 export default function AvisosPage() {
   return (
@@ -67,7 +67,8 @@ async function Lista() {
     <div className="flex flex-col gap-2">
       <MarcarLeidas hayNoLeidas={avisos.some((a) => !a.leida)} />
       {avisos.map((a) => {
-        const Icono = ICONO[a.tipo];
+        // un tipo de aviso nuevo sin ícono propio no rompe la pantalla
+        const Icono = ICONO[a.tipo] ?? Bell;
         return (
           <Link
             key={a.id}
