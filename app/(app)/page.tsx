@@ -231,6 +231,14 @@ async function Listado() {
         uid={uid ?? ""}
       />
 
+      <Link
+        href="/juntadas"
+        className="flex items-center justify-between rounded-2xl border border-borde bg-superficie p-4 font-semibold active:scale-[0.99]"
+      >
+        <span>📅 Juntadas anteriores y sus fotos</span>
+        <ChevronRight className="size-5 text-texto-suave" />
+      </Link>
+
       {!hayAlgo && (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-borde bg-superficie p-6 text-center">
           <CalendarPlus className="size-8 text-texto-suave" />
