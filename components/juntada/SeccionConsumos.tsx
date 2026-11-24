@@ -90,12 +90,13 @@ export function SeccionConsumos({ juntadaId, cuentaId, uid, puedeGestionar, perf
     setOcupado(true);
     setAviso(null);
     const { error } = await fn();
-    setOcupado(false);
     if (error) setAviso(mensajeError(error));
     else {
       if (ok) setAviso(ok);
       await recargar();
     }
+    // recién con la lista nueva se puede volver a tocar (un doble toque no paga dos veces)
+    setOcupado(false);
     return !error;
   }
 

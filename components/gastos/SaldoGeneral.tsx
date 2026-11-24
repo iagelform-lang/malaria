@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Loader2, Undo2 } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
@@ -29,21 +29,32 @@ export function SaldoGeneral({
   const router = useRouter();
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  // mientras la lista se actualiza, nada se puede volver a tocar (antes un doble toque pagaba dos veces)
+  const [actualizando, iniciar] = useTransition();
+  // deudas ya saldadas que se esconden al instante, hasta que llegue la lista nueva
+  const [hechas, setHechas] = useState<string[]>([]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- llegó la lista nueva: ya no hace falta esconder nada
+    setHechas([]);
+  }, [deudas]);
+  const trabado = ocupado !== null || actualizando;
   const perfil = (id: string) => perfiles.find((p) => p.id === id);
   const apodo = (id: string) => perfil(id)?.apodo ?? "?";
   const puede = (de: string, a: string) => esAdmin || uid === de || uid === a;
 
   async function correr(clave: string, fn: () => PromiseLike<{ error: { message?: string } | null }>, ok: string) {
+    if (trabado) return;
     setOcupado(clave);
     setAviso(null);
     const { error } = await fn();
+    if (!error) setHechas((h) => [...h, clave]);
     setOcupado(null);
     setAviso(error ? mensajeError(error) : ok);
-    if (!error) router.refresh();
+    if (!error) iniciar(() => router.refresh());
   }
 
   // primero lo que me toca a mí
-  const ordenadas = [...deudas].sort(
+  const ordenadas = deudas.filter((d) => !hechas.includes(`${d.de}-${d.a}`)).sort(
     (x, y) => Number(y.de === uid || y.a === uid) - Number(x.de === uid || x.a === uid),
   );
 
@@ -74,7 +85,7 @@ export function SaldoGeneral({
               </div>
               {puede(d.de, d.a) && (
                 <button
-                  disabled={ocupado !== null}
+                  disabled={trabado}
                   onClick={() =>
                     correr(
                       clave,
@@ -105,7 +116,7 @@ export function SaldoGeneral({
                 </span>
                 {puede(p.de_perfil, p.a_perfil) && (
                   <button
-                    disabled={ocupado !== null}
+                    disabled={trabado}
                     onClick={() =>
                       correr(`p${p.id}`, () => supabase.from("pagos").delete().eq("id", p.id), "Pago deshecho.")
                     }
