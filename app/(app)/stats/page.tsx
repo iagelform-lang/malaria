@@ -11,6 +11,7 @@ import {
   rankingPuntos,
 } from "@/lib/juegos";
 import { RankingPuntos } from "@/components/stats/RankingPuntos";
+import { PuntosExtra, type PuntoExtra } from "@/components/stats/PuntosExtra";
 import { TablaJuegos } from "@/components/stats/TablaJuegos";
 import { tablaTorneos } from "@/lib/torneo";
 import type { ConsumoG } from "@/lib/gastos";
@@ -46,7 +47,7 @@ export default function StatsPage() {
 }
 
 async function Contenido() {
-  const { supabase, uid } = await usuarioActual();
+  const { supabase, uid, esAdmin } = await usuarioActual();
   const [
     { data },
     { data: jFin },
@@ -58,6 +59,7 @@ async function Contenido() {
     { data: eventos },
     { data: voyEv },
     { data: posTorneos },
+    { data: extras },
   ] = await Promise.all([
     supabase.from("v_estadisticas").select("*"),
     supabase
@@ -75,6 +77,10 @@ async function Contenido() {
     supabase.from("fechas_especiales").select("id, puntos"),
     supabase.from("fechas_asistencia").select("fecha_id, perfil_id, dia"),
     supabase.from("torneo_posiciones").select("perfil_id, puesto, puntos"),
+    supabase
+      .from("puntos_extra")
+      .select("id, perfil_id, puntos, motivo, dado_por, creado_en")
+      .order("creado_en", { ascending: false }),
   ]);
   // hoy en Buenos Aires: los eventos suman recién cuando ya pasaron
   // eslint-disable-next-line react-hooks/purity
@@ -121,9 +127,16 @@ async function Contenido() {
           eventos ?? [],
           voyEv ?? [],
           hoyBA,
+          (extras as PuntoExtra[]) ?? [],
         )}
         apodos={apodos}
         uid={uid ?? ""}
+      />
+      <PuntosExtra
+        historial={(extras as PuntoExtra[]) ?? []}
+        perfiles={(perfs ?? []).filter((p) => p.activo && !p.oculto).map((p) => ({ id: p.id, apodo: p.apodo }))}
+        uid={uid ?? ""}
+        esAdmin={esAdmin}
       />
               </>
             ),

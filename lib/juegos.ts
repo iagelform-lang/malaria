@@ -87,6 +87,8 @@ export function rankingPuntos(
   eventos: { id: number; puntos?: number | null }[] = [],
   voyEventos: { fecha_id: number; perfil_id: string; dia: string }[] = [],
   hoy = "9999-12-31",
+  /** puntos extra dados a mano (suman o restan, no cuentan como juntada) */
+  extras: { perfil_id: string; puntos: number }[] = [],
 ) {
   const puntos = new Map(juntadas.map((j) => [j.id, Number(j.puntos) || 10]));
   const puntosEvento = new Map(eventos.map((e) => [e.id, Number(e.puntos) || 10]));
@@ -112,6 +114,11 @@ export function rankingPuntos(
     if (p === undefined || v.dia > hoy || vistos.has(clave)) continue;
     vistos.add(clave);
     sumar(v.perfil_id, p);
+  }
+  for (const e of extras) {
+    const x = total.get(e.perfil_id) ?? { puntos: 0, juntadas: 0 };
+    x.puntos += Number(e.puntos) || 0;
+    total.set(e.perfil_id, x);
   }
   return [...total.entries()]
     .map(([perfil_id, x]) => ({ perfil_id, ...x }))

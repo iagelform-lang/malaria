@@ -87,6 +87,7 @@ export function calcularWrapped(
   eventos: { id: number; puntos: number | null }[] = [],
   voyEventos: { fecha_id: number; perfil_id: string; dia: string }[] = [],
   hoy = "9999-12-31",
+  extras: { perfil_id: string; puntos: number }[] = [],
 ): Wrapped {
   const ids = new Set(juntadas.map((j) => j.id));
   const asis = asistencias.filter((a) => ids.has(a.juntada_id));
@@ -165,7 +166,7 @@ export function calcularWrapped(
       victorias.set(j.perfil_id, (victorias.get(j.perfil_id) ?? 0) + 1);
   }
 
-  const tablaPuntos = rankingPuntos(juntadas, asis, eventos, voyEventos, hoy).map((f) => ({
+  const tablaPuntos = rankingPuntos(juntadas, asis, eventos, voyEventos, hoy, extras).map((f) => ({
     id: f.perfil_id,
     valor: f.puntos,
   }));

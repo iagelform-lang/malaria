@@ -40,6 +40,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
     { data: partidas },
     { data: posT },
     { data: frases },
+    { data: extras },
   ] = await Promise.all([
     supabase.from("perfiles").select("id, apodo, rol, alias, oculto").eq("id", id).maybeSingle(),
     supabase.from("perfiles").select("id, apodo, activo, oculto"),
@@ -54,6 +55,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
       .from("frases")
       .select("id, texto, juntada_id, frase_votos(perfil_id)")
       .eq("perfil_id", id),
+    supabase.from("puntos_extra").select("perfil_id, puntos"),
   ]);
   if (!persona || persona.oculto) notFound();
 
@@ -67,7 +69,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   const asisFin = (asis ?? []).filter((a) => idsFin.has(a.juntada_id));
   // eslint-disable-next-line react-hooks/purity
   const hoyBA = new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10);
-  const tabla = rankingPuntos(jFin ?? [], asisFin, eventos ?? [], voyEv ?? [], hoyBA).filter(
+  const tabla = rankingPuntos(jFin ?? [], asisFin, eventos ?? [], voyEv ?? [], hoyBA, extras ?? []).filter(
     (f) => !ocultos.has(f.perfil_id),
   );
   const filaPuntos = tabla.find((f) => f.perfil_id === id);
