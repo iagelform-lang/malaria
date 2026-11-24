@@ -30,3 +30,30 @@ export function fotoDelDia(faltan: number) {
   const anteriores = FOTOS.filter((x) => x > n).sort((a, b) => a - b);
   return anteriores.length ? `/${CARPETA}/${String(anteriores[0]).padStart(2, "0")}.jpg` : null;
 }
+
+// ---- Foto cada 2 horas, de 9 a 0; de noche, cartel ----
+export const PRIMERA_HORA = 9;
+export const CADA_HORAS = 2;
+export const TURNOS_POR_DIA = Math.ceil((24 - PRIMERA_HORA) / CADA_HORAS); // 8: 9, 11, 13, 15, 17, 19, 21, 23
+
+/** Números que son copia de otra foto (rellenaban días): no entran en la rotación */
+const REPETIDAS = [0, 30, 25, 23, 13];
+/** Fotos distintas, en el orden en que salen */
+export const FOTOS_UNICAS = FOTOS.filter((n) => !REPETIDAS.includes(n)).sort((a, b) => b - a);
+
+/** true de 0 a 9 de la mañana (hora de Buenos Aires): en lugar de foto, "andá a dormir" */
+export function esDeNoche(horaBA: number) {
+  return horaBA < PRIMERA_HORA;
+}
+
+/**
+ * La foto de este momento: cambia cada 2 horas y recorre todas las fotos distintas
+ * en orden antes de repetir (el turno sigue contando de un día al otro).
+ */
+export function fotoDelMomento(faltan: number, horaBA: number) {
+  if (esDeNoche(horaBA) || FOTOS_UNICAS.length === 0) return null;
+  const turno = Math.floor((horaBA - PRIMERA_HORA) / CADA_HORAS);
+  const dia = Math.max(...FOTOS) - faltan; // 0 = el primer día de la cuenta
+  const i = (((dia * TURNOS_POR_DIA + turno) % FOTOS_UNICAS.length) + FOTOS_UNICAS.length) % FOTOS_UNICAS.length;
+  return `/${CARPETA}/${String(FOTOS_UNICAS[i]).padStart(2, "0")}.jpg`;
+}

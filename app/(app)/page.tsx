@@ -77,7 +77,11 @@ async function Listado() {
   );
 
   // eslint-disable-next-line react-hooks/purity -- la fecha de hoy se calcula al pedir la página
-  const hoyBA = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).format(new Date());
+  const ahora = new Date();
+  const hoyBA = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).format(ahora);
+  const horaBA = Number(
+    new Intl.DateTimeFormat("en-GB", { timeZone: "America/Argentina/Buenos_Aires", hour: "2-digit", hourCycle: "h23" }).format(ahora),
+  );
   const estoyAdentro = !!activa && activa.asistencias.some((a) => a.perfil_id === uid);
   // arrancó, dije que iba y todavía no me escanearon: el QR va primero
   const dijeQueVoy = !!activa && activa.confirmaciones.some((c) => c.perfil_id === uid && c.va);
@@ -153,7 +157,7 @@ async function Listado() {
         </div>
       )}
 
-      <CuentaRegresiva fechas={(fechas as FechaEspecial[]) ?? []} hoyBA={hoyBA} />
+      <CuentaRegresiva fechas={(fechas as FechaEspecial[]) ?? []} hoyBA={hoyBA} horaBA={horaBA} />
       <CartelAvisos />
       <CartelNovedades />
 
