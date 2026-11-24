@@ -8,8 +8,6 @@ import { X } from "lucide-react";
 const CLAVE = "malaria-novedades-2026-11";
 
 const NOVEDADES = [
-  { emoji: "💸", texto: "Gastos como en Splid: dividí solo entre algunos y mirá quién le debe a quién", href: "/gastos" },
-  { emoji: "✈️", texto: "Cuentas sueltas para viajes o compras en común", href: "/gastos" },
   { emoji: "👠", texto: "Jugá Bid Womens desde la app y sumá puntos de torneo", href: "/juegos" },
   { emoji: "📸", texto: "En la juntada: subí fotos y votá la frase de la noche", href: null },
 ];

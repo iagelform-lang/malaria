@@ -10,8 +10,6 @@ import { CartelAvisos } from "@/components/inicio/CartelAvisos";
 import { CartelNovedades } from "@/components/inicio/CartelNovedades";
 import { QrLlegada } from "@/components/inicio/QrLlegada";
 import { CuentaRegresiva } from "@/components/inicio/CuentaRegresiva";
-import { cargarSaldoGeneral } from "@/lib/saldoServidor";
-import { pesos } from "@/lib/cuentas";
 
 export default function InicioPage() {
   return (
@@ -27,9 +25,6 @@ export default function InicioPage() {
       </div>
       <Suspense fallback={<Esqueleto />}>
         <Listado />
-      </Suspense>
-      <Suspense fallback={null}>
-        <TarjetaSaldo />
       </Suspense>
     </div>
   );
@@ -279,29 +274,4 @@ function resumenRespuestas(j: JuntadaConConteo) {
   const van = j.confirmaciones.filter((c) => c.va).length;
   const no = j.confirmaciones.length - van;
   return `${van} van${no ? ` · ${no} no van` : ""}`;
-}
-
-/** Mi saldo de gastos, sumando todas las juntadas y cuentas */
-async function TarjetaSaldo() {
-  const { supabase, uid } = await usuarioActual();
-  if (!uid) return null;
-  const { saldos } = await cargarSaldoGeneral(supabase);
-  const mio = Math.round(saldos.get(uid) ?? 0);
-  // si estás al día no ocupa lugar en Inicio (Cuentas sigue en Stats → Gastos)
-  if (Math.abs(mio) < 1) return null;
-  return (
-    <Link
-      href="/gastos"
-      className="flex items-center gap-3 rounded-2xl bg-superficie p-4 ring-1 ring-borde active:scale-[0.99]"
-    >
-      <span className="text-2xl">💸</span>
-      <div className="flex-1">
-        <p className="font-medium">Cuentas</p>
-        <p className={`text-sm ${mio <= -1 ? "text-red-600" : mio >= 1 ? "text-acento" : "text-texto-suave"}`}>
-          {mio <= -1 ? `Debés ${pesos(-mio)}` : mio >= 1 ? `Te deben ${pesos(mio)}` : "Estás al día · viajes y gastos en común"}
-        </p>
-      </div>
-      <ChevronRight className="size-4 text-texto-suave" />
-    </Link>
-  );
 }

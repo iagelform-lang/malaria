@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { Check, Loader2, Pencil, Plus, Trash2, Undo2, UserMinus, UserPlus, X } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { calcularCuentas, pesos } from "@/lib/cuentas";
@@ -147,7 +146,6 @@ export function SeccionConsumos({ juntadaId, cuentaId, uid, puedeGestionar, perf
           inicial={editando}
           uid={uid}
           opcionesPago={perfiles.filter((p) => idsQueVinieron.includes(p.id) || p.id === editando?.pagado_por)}
-          participantes={perfiles.filter((p) => participantes.includes(p.id) || editando?.entre?.includes(p.id))}
           ocupado={ocupado}
           onGuardar={guardar}
           onCancelar={() => {
@@ -306,10 +304,6 @@ export function SeccionConsumos({ juntadaId, cuentaId, uid, puedeGestionar, perf
             <p className="border-t border-borde pt-3 text-sm text-acento">✓ Cuentas claras, nadie le debe a nadie.</p>
           )}
 
-          <Link href="/gastos" className="text-xs text-acento">
-            Esto es solo {esJuntada ? "de esta juntada" : "de esta cuenta"}. Ver el saldo general entre todos →
-          </Link>
-
           {pagos.length > 0 && (
             <div className="flex flex-col gap-1 border-t border-borde pt-3">
               <p className="text-xs text-texto-suave">Pagos registrados</p>
@@ -359,7 +353,6 @@ function FormConsumo({
   inicial,
   uid,
   opcionesPago,
-  participantes,
   ocupado,
   onGuardar,
   onCancelar,
@@ -367,7 +360,6 @@ function FormConsumo({
   inicial: Consumo | null;
   uid: string;
   opcionesPago: Perfil[];
-  participantes: Perfil[];
   ocupado: boolean;
   onGuardar: (d: {
     tipo: TipoConsumo;
@@ -385,17 +377,11 @@ function FormConsumo({
     inicial?.pagado_por ?? (opcionesPago.some((p) => p.id === uid) ? uid : (opcionesPago[0]?.id ?? "")),
   );
 
-  // entre quiénes se divide: por defecto entre todos
-  const [entre, setEntre] = useState<string[]>(
-    inicial?.entre?.length ? inicial.entre : participantes.map((p) => p.id),
-  );
-  const todos = participantes.every((p) => entre.includes(p.id));
 
   const montoNum = monto.trim() === "" ? null : Number(monto.replace(/\./g, "").replace(",", "."));
   const valido =
     descripcion.trim().length > 0 &&
-    (montoNum === null || (!isNaN(montoNum) && montoNum >= 0)) &&
-    (montoNum === null || entre.length > 0);
+    (montoNum === null || (!isNaN(montoNum) && montoNum >= 0));
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-borde bg-superficie p-4">
@@ -446,29 +432,6 @@ function FormConsumo({
           </select>
         )}
       </div>
-      {montoNum !== null && participantes.length > 1 && (
-        <div className="flex flex-col gap-1.5">
-          <p className="text-xs text-texto-suave">
-            Se divide entre {todos ? "todos" : `${entre.length} (tocá para sacar o sumar)`}
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {participantes.map((p) => {
-              const adentro = entre.includes(p.id);
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => setEntre(adentro ? entre.filter((x) => x !== p.id) : [...entre, p.id])}
-                  className={`rounded-full px-2.5 py-1 text-xs ${
-                    adentro ? "bg-acento/20 text-acento ring-1 ring-acento/40" : "bg-fondo text-texto-suave line-through"
-                  }`}
-                >
-                  {p.apodo}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
       <div className="flex gap-2">
         <button
           disabled={!valido || ocupado}
@@ -478,7 +441,7 @@ function FormConsumo({
               descripcion: descripcion.trim(),
               monto: montoNum,
               pagado_por: montoNum !== null ? pagadoPor || null : null,
-              entre: montoNum !== null && !todos ? entre : null,
+              entre: null,
             })
           }
           className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-acento py-3 font-semibold text-white disabled:opacity-50"
