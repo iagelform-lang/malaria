@@ -15,16 +15,26 @@ export type PuntoExtra = {
   creado_en: string;
 };
 
+/** Lo que resta solo la app: 1 punto por hora sin votar la fecha */
+export type Castigo = {
+  perfil_id: string;
+  puntos: number;
+  actualizado_en: string;
+  sondeos: { nombre: string } | { nombre: string }[] | null;
+};
+
 const RAPIDOS = [5, 10, 20, 50];
 
 /** Dar o sacar puntos a otro integrante (con motivo), y el historial de todos */
 export function PuntosExtra({
   historial,
+  castigos = [],
   perfiles,
   uid,
   esAdmin,
 }: {
   historial: PuntoExtra[];
+  castigos?: Castigo[];
   perfiles: { id: string; apodo: string }[];
   uid: string;
   esAdmin: boolean;
@@ -176,6 +186,25 @@ export function PuntosExtra({
               : "Elegí a quién"}
           </button>
           <p className="text-xs text-texto-suave">Hasta 100 por vez. Nadie se puede dar puntos a sí mismo.</p>
+        </div>
+      )}
+
+      {castigos.length > 0 && (
+        <div className="flex flex-col gap-1.5 rounded-2xl border border-red-200 bg-red-50 p-3">
+          <p className="text-sm font-semibold text-red-700">🗳️ Por no votar la fecha (−1 por cada hora)</p>
+          {[...castigos]
+            .sort((a, b) => a.puntos - b.puntos)
+            .map((c, i) => {
+              const s = Array.isArray(c.sondeos) ? c.sondeos[0] : c.sondeos;
+              return (
+                <div key={i} className="flex items-center gap-3 text-sm">
+                  <span className="w-12 shrink-0 text-right font-mono font-bold text-red-600">{c.puntos}</span>
+                  <p className="min-w-0 flex-1 truncate">
+                    <b>{apodo(c.perfil_id)}</b> · {s?.nombre ?? "votación"}
+                  </p>
+                </div>
+              );
+            })}
         </div>
       )}
 

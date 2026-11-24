@@ -11,7 +11,7 @@ import {
   rankingPuntos,
 } from "@/lib/juegos";
 import { RankingPuntos } from "@/components/stats/RankingPuntos";
-import { PuntosExtra, type PuntoExtra } from "@/components/stats/PuntosExtra";
+import { PuntosExtra, type Castigo, type PuntoExtra } from "@/components/stats/PuntosExtra";
 import { TablaJuegos } from "@/components/stats/TablaJuegos";
 import { tablaTorneos } from "@/lib/torneo";
 import type { ConsumoG } from "@/lib/gastos";
@@ -60,6 +60,7 @@ async function Contenido() {
     { data: voyEv },
     { data: posTorneos },
     { data: extras },
+    { data: castigos },
   ] = await Promise.all([
     supabase.from("v_estadisticas").select("*"),
     supabase
@@ -81,6 +82,7 @@ async function Contenido() {
       .from("puntos_extra")
       .select("id, perfil_id, puntos, motivo, dado_por, creado_en")
       .order("creado_en", { ascending: false }),
+    supabase.from("castigos_voto").select("perfil_id, puntos, actualizado_en, sondeos(nombre)"),
   ]);
   // hoy en Buenos Aires: los eventos suman recién cuando ya pasaron
   // eslint-disable-next-line react-hooks/purity
@@ -127,13 +129,14 @@ async function Contenido() {
           eventos ?? [],
           voyEv ?? [],
           hoyBA,
-          (extras as PuntoExtra[]) ?? [],
+          [...((extras as PuntoExtra[]) ?? []), ...((castigos as Castigo[]) ?? [])],
         )}
         apodos={apodos}
         uid={uid ?? ""}
       />
       <PuntosExtra
         historial={(extras as PuntoExtra[]) ?? []}
+        castigos={(castigos as Castigo[]) ?? []}
         perfiles={(perfs ?? []).filter((p) => p.activo && !p.oculto).map((p) => ({ id: p.id, apodo: p.apodo }))}
         uid={uid ?? ""}
         esAdmin={esAdmin}

@@ -70,6 +70,7 @@ async function Contenido({
     { data: frs },
     { data: trs },
     { data: extras },
+    { data: castigos },
   ] = await Promise.all([
     supabase
       .from("juntadas")
@@ -91,6 +92,7 @@ async function Contenido({
     supabase.from("frases").select("juntada_id, perfil_id, texto, frase_votos(perfil_id)"),
     supabase.from("torneos").select("creado_en, torneo_posiciones(perfil_id, puesto, puntos)"),
     supabase.from("puntos_extra").select("perfil_id, puntos, creado_en"),
+    supabase.from("castigos_voto").select("perfil_id, puntos, actualizado_en"),
   ]);
 
   const delAnio = ((js as JW[]) ?? []).filter((j) =>
@@ -106,7 +108,10 @@ async function Contenido({
     evs ?? [],
     (voyEv ?? []).filter((v) => v.dia.startsWith(String(anio))),
     hoyBA,
-    (extras ?? []).filter((e) => esDelAnio(e.creado_en, anio)),
+    [
+      ...(extras ?? []).filter((e) => esDelAnio(e.creado_en, anio)),
+      ...(castigos ?? []).filter((c) => esDelAnio(c.actualizado_en, anio)),
+    ],
   );
   const idsAnio = new Set(delAnio.map((j) => j.id));
   const campeonJuegos =
