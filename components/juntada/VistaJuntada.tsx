@@ -35,7 +35,6 @@ import { Avatar } from "@/components/ui/Avatar";
 import { SeccionConsumos } from "@/components/juntada/SeccionConsumos";
 import { EditarJuntada } from "@/components/juntada/EditarJuntada";
 import { nivelDe } from "@/lib/juegos";
-import { SeccionLlevar } from "@/components/juntada/SeccionLlevar";
 import { SeccionFotos } from "@/components/juntada/SeccionFotos";
 import { SeccionJuegos } from "@/components/juntada/SeccionJuegos";
 import { SeccionFrases } from "@/components/juntada/SeccionFrases";
@@ -601,17 +600,6 @@ export function VistaJuntada({
         </Seccion>
       )}
 
-      {/* Antes: solo lo que hay que organizar */}
-      {juntada.estado === "propuesta" && (
-        <SeccionLlevar
-          juntadaId={id}
-          uid={uid}
-          puedeGestionar={puedeGestionar}
-          perfiles={perfiles}
-          abierta={abierta}
-        />
-      )}
-
       {/* Durante y después: una cosa por vez */}
       {(juntada.estado === "activa" || juntada.estado === "finalizada") && (
         <Solapas
@@ -620,27 +608,10 @@ export function VistaJuntada({
           solapas={[
             ...(juntada.estado === "activa"
               ? [
-                  {
-                    clave: "juegos",
-                    titulo: "🎮 Juegos",
-                    contenido: juegos,
-                  },
-                  { clave: "frases", titulo: "💬 Frases", contenido: frases },
                   { clave: "fotos", titulo: "📸 Fotos", contenido: fotos },
                   { clave: "gastos", titulo: "💸 Gastos", contenido: gastos },
-                  {
-                    clave: "llevar",
-                    titulo: "🧺 Qué llevar",
-                    contenido: (
-                      <SeccionLlevar
-                        juntadaId={id}
-                        uid={uid}
-                        puedeGestionar={puedeGestionar}
-                        perfiles={perfiles}
-                        abierta={abierta}
-                      />
-                    ),
-                  },
+                  { clave: "frases", titulo: "💬 Frases", contenido: frases },
+                  { clave: "juegos", titulo: "🎮 Juegos", contenido: juegos },
                 ]
               : [
                   { clave: "fotos", titulo: "📸 Fotos", contenido: fotos },
