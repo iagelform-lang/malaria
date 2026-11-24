@@ -191,7 +191,7 @@ export function PuntosExtra({
 
       {castigos.length > 0 && (
         <div className="flex flex-col gap-1.5 rounded-2xl border border-red-200 bg-red-50 p-3">
-          <p className="text-sm font-semibold text-red-700">🗳️ Por no votar la fecha (−1 por cada hora)</p>
+          <p className="text-sm font-semibold text-red-700">🗳️ Por no votar la fecha (−1 por cada hora, de 9 a 00)</p>
           {[...castigos]
             .sort((a, b) => a.puntos - b.puntos)
             .map((c, i) => {

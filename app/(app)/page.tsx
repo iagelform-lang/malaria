@@ -76,7 +76,6 @@ async function Listado() {
     (j) => !j.confirmaciones.some((c) => c.perfil_id === uid) && !j.asistencias.some((a) => a.perfil_id === uid),
   );
 
-  // eslint-disable-next-line react-hooks/purity -- la fecha de hoy se calcula al pedir la página
   const ahora = new Date();
   const hoyBA = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Argentina/Buenos_Aires" }).format(ahora);
   const horaBA = Number(

@@ -95,37 +95,6 @@ export function minimizarDeudas(saldos: Map<string, number>): Deuda[] {
   return deudas;
 }
 
-/** Un lugar donde hay gastos: una juntada o una cuenta suelta (viaje, compra en común) */
-export type Contexto = {
-  clave: string;
-  nombre: string;
-  participantes: string[];
-  consumos: ConsumoMonto[];
-  pagos: Pago[];
-};
-
-/**
- * Saldo general: suma lo de todas las juntadas y cuentas, más los pagos
- * hechos "en general", y compensa las deudas cruzadas.
- */
-export function saldoGeneral(contextos: Contexto[], pagosGenerales: Pago[]) {
-  const saldos = new Map<string, number>();
-  const sumar = (id: string, v: number) => saldos.set(id, (saldos.get(id) ?? 0) + v);
-  const detalle: { clave: string; nombre: string; saldos: Map<string, number> }[] = [];
-
-  for (const c of contextos) {
-    const cuentas = calcularCuentas(c.participantes, c.consumos, c.pagos);
-    for (const [id, v] of cuentas.saldos) sumar(id, v);
-    if ([...cuentas.saldos.values()].some((v) => Math.abs(v) >= 1))
-      detalle.push({ clave: c.clave, nombre: c.nombre, saldos: cuentas.saldos });
-  }
-  for (const p of pagosGenerales) {
-    sumar(p.de_perfil, Number(p.monto));
-    sumar(p.a_perfil, -Number(p.monto));
-  }
-  return { saldos, deudas: minimizarDeudas(saldos), detalle };
-}
-
 const fmt = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
 export function pesos(v: number) {
   return fmt.format(Math.round(v));
