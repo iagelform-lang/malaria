@@ -1,5 +1,5 @@
 import { FotoAmpliable } from "@/components/inicio/FotoAmpliable";
-import { diasQueFaltan, esDeNoche, fotoDelMomento, FOTOS, NOMBRE_EVENTO, type FechaParaCuenta } from "@/lib/cuentaRegresiva";
+import { diasQueFaltan, esDeNoche, fotoDelMomento, FOTOS, NOMBRE_EVENTO, PRIMER_DIA, type FechaParaCuenta } from "@/lib/cuentaRegresiva";
 
 /** Tarjeta grande en Inicio: "Faltan X días para El Malariaso" con una foto que cambia cada 2 horas (de noche, cartel) */
 export function CuentaRegresiva({
@@ -15,7 +15,7 @@ export function CuentaRegresiva({
   const evento = fechas.find((f) => NOMBRE_EVENTO.test(f.nombre));
   if (!evento) return null;
   const faltan = diasQueFaltan(evento, hoyBA);
-  const maximo = Math.max(...FOTOS);
+  const maximo = PRIMER_DIA;
   const dur = Math.max(1, evento.duracion_dias ?? 1);
   // se muestra desde la primera foto hasta el último día del evento
   if (faltan > maximo || faltan < -(dur - 1)) return null;
