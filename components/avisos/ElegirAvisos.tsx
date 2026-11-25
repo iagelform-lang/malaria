@@ -12,7 +12,7 @@ const GRUPOS = [
   { clave: "cambio", titulo: "Cambios de hora o lugar", tipos: ["cambio"] },
   { clave: "arranque", titulo: "Arranque y fin de la juntada", tipos: ["iniciada", "finalizada"] },
   { clave: "wrapped", titulo: "Wrapped del año", tipos: ["wrapped"] },
-  { clave: "cuenta", titulo: "Cuenta regresiva del Malariaso (1 por día)", tipos: ["cuenta"] },
+  { clave: "cuenta", titulo: "Cuenta regresiva del Malariaso (cada foto nueva, de 9 a 23)", tipos: ["cuenta"] },
   { clave: "puntos", titulo: "Cuando te dan o te sacan puntos", tipos: ["puntos", "castigo"] },
 ];
 
