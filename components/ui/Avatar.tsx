@@ -1,7 +1,7 @@
 // Círculo con la inicial y un color estable por apodo
 const COLORES = ["#a3e635", "#38bdf8", "#f472b6", "#fbbf24", "#a78bfa", "#34d399", "#fb7185", "#60a5fa"];
 
-function colorDe(texto: string) {
+export function colorDe(texto: string) {
   let h = 0;
   for (const c of texto) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return COLORES[h % COLORES.length];
