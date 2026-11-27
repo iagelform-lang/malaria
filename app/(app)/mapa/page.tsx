@@ -23,11 +23,22 @@ export default function MapaPage() {
 async function Contenido() {
   const { supabase, uid } = await usuarioActual();
 
-  const [{ data: perfiles }, { data: vivos }, { data: casas }] = await Promise.all([
+  const [{ data: perfiles }, { data: vivos }, { data: casas }, { data: activas }, { data: misAsistencias }] = await Promise.all([
     supabase.from("perfiles").select("id, apodo").eq("oculto", false).eq("activo", true).order("apodo"),
     supabase.from("ubicaciones_vivo").select("perfil_id, lat, lng, precision_m, actualizado_en"),
     supabase.from("casas").select("perfil_id, lat, lng, direccion"),
+    supabase
+      .from("juntadas")
+      .select("id, nombre, confirmaciones!inner(perfil_id, va)")
+      .eq("estado", "activa")
+      .eq("confirmaciones.perfil_id", uid ?? "")
+      .eq("confirmaciones.va", true),
+    supabase.from("asistencias").select("juntada_id").eq("perfil_id", uid ?? ""),
   ]);
+
+  // Una juntada en curso a la que dijo "voy" y todavía no llegó
+  const llego = new Set((misAsistencias ?? []).map((a) => a.juntada_id));
+  const enCamino = (activas ?? []).find((j) => !llego.has(j.id))?.nombre ?? null;
 
   return (
     <MapaGrupo
@@ -35,6 +46,7 @@ async function Contenido() {
       integrantes={(perfiles as Integrante[]) ?? []}
       vivosIniciales={(vivos as UbicacionVivo[]) ?? []}
       casasIniciales={(casas as Casa[]) ?? []}
+      enCamino={enCamino}
     />
   );
 }

@@ -49,7 +49,9 @@ export function MapaGrupo({
   integrantes,
   vivosIniciales,
   casasIniciales,
+  enCamino,
 }: {
+  enCamino?: string | null;
   uid: string;
   integrantes: Integrante[];
   vivosIniciales: UbicacionVivo[];
@@ -301,6 +303,22 @@ export function MapaGrupo({
 
   return (
     <div className="flex flex-col gap-4">
+      {enCamino && !quiere && (
+        <div className="flex items-center gap-3 rounded-2xl bg-acento p-4 text-white">
+          <Navigation className="size-6 shrink-0" />
+          <p className="min-w-0 flex-1 text-sm">
+            <b>Arrancó {enCamino}.</b> Prendé tu ubicación así ven si estás llegando.
+          </p>
+          <button
+            type="button"
+            onClick={alternarCompartir}
+            className="shrink-0 rounded-full bg-white px-4 py-2 text-sm font-semibold text-acento"
+          >
+            Prender
+          </button>
+        </div>
+      )}
+
       {/* Compartir en vivo */}
       <div className="rounded-2xl border border-borde bg-superficie p-4">
         <div className="flex items-center gap-3">
